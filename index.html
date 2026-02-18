@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A2BA Music Group | Digital Music Aggregator & Publishing</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 font-family=%22Arial, sans-serif%22 font-weight=%22bold%22 fill=%22black%22>A</text></svg>">
+
+    <style>
+        /* Reset & Base Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #222; background-color: #fff; line-height: 1.6; scroll-behavior: smooth; overflow-x: hidden; }
+        a { text-decoration: none; color: inherit; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 5%; }
+
+        /* Kelas Animasi Scroll */
+        .fade-up { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .fade-up.show { opacity: 1; transform: translateY(0); }
+
+        /* NAVBAR & HEADER */
+        header { background-color: #fff; border-bottom: 1px solid #eaeaea; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; height: 80px; }
+        .logo img { height: 45px; object-fit: contain; }
+        
+        /* Navigasi Desktop */
+        .desktop-nav { display: flex; gap: 20px; align-items: center; }
+        .desktop-nav a.link { font-weight: 600; font-size: 0.95rem; color: #555; transition: color 0.3s; }
+        .desktop-nav a.link:hover { color: #000; }
+        .auth-buttons { display: flex; gap: 10px; margin-left: 20px; }
+        .btn-login { padding: 8px 20px; border: 1px solid #000; border-radius: 30px; font-weight: bold; color: #000; transition: 0.3s; text-align: center; }
+        .btn-login:hover { background-color: #f4f4f4; }
+        .btn-register { padding: 8px 20px; background-color: #000; border: 1px solid #000; border-radius: 30px; font-weight: bold; color: #fff; transition: 0.3s; text-align: center; }
+        .btn-register:hover { background-color: #333; }
+
+        /* Hamburger Icon (Tersembunyi di Desktop) */
+        .hamburger { display: none; flex-direction: column; gap: 6px; cursor: pointer; z-index: 1001; }
+        .hamburger span { width: 30px; height: 3px; background-color: #000; border-radius: 3px; transition: 0.3s; }
+
+        /* MOBILE SIDEBAR */
+        .mobile-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: rgba(0,0,0,0.6); z-index: 1999; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .mobile-overlay.active { opacity: 1; visibility: visible; }
+        
+        .sidebar { position: fixed; top: 0; right: -300px; width: 280px; height: 100vh; background-color: #fff; z-index: 2000; box-shadow: -5px 0 15px rgba(0,0,0,0.1); transition: right 0.4s cubic-bezier(0.77, 0, 0.175, 1); display: flex; flex-direction: column; }
+        .sidebar.active { right: 0; }
+        
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; border-bottom: 1px solid #eee; }
+        .sidebar-header img { height: 35px; }
+        .close-btn { font-size: 2rem; background: none; border: none; cursor: pointer; color: #333; line-height: 1; }
+        
+        .sidebar-links { padding: 25px; display: flex; flex-direction: column; gap: 20px; }
+        .sidebar-links a.sidebar-link { font-size: 1.1rem; font-weight: 600; color: #333; border-bottom: 1px solid #f4f4f4; padding-bottom: 10px; }
+        .sidebar-auth { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
+        .sidebar-auth .btn-login, .sidebar-auth .btn-register { width: 100%; padding: 12px; }
+
+        /* --- HERO SECTION DENGAN 6 FOTO ARTIS --- */
+        .hero { position: relative; padding: 160px 0; text-align: center; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 80vh; }
+        .hero-bg-grid { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); z-index: 0; }
+        .hero-bg-grid img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(80%) brightness(0.7); transition: 0.5s; }
+        .hero-bg-grid img:hover { filter: grayscale(0%) brightness(1); transform: scale(1.05); }
+        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.65); z-index: 1; }
+        
+        .hero .container { position: relative; z-index: 2; }
+        .hero h1 { font-size: 4rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 20px; line-height: 1.1; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .hero p { font-size: 1.25rem; color: #eee; max-width: 700px; margin: 0 auto 40px auto; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+        .hero-buttons { display: flex; justify-content: center; gap: 15px; }
+        .btn-hero { padding: 15px 35px; background-color: #fff; color: #000; border-radius: 30px; font-weight: bold; font-size: 1.1rem; transition: 0.3s; border: none; cursor: pointer; }
+        .btn-hero:hover { background-color: #eee; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+
+        /* Services Section */
+        .section-title { text-align: center; font-size: 2.2rem; margin-bottom: 50px; font-weight: 800; color: #000; }
+        .services { padding: 100px 0; background-color: #fff; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .card { padding: 40px 30px; border: 1px solid #eaeaea; border-radius: 12px; transition: 0.4s; background: #fafafa; }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); background: #fff; border-color: #000; }
+        .card h3 { font-size: 1.3rem; margin-bottom: 15px; }
+        .card p { color: #666; font-size: 0.95rem; }
+
+        /* Pricing / Paket Section */
+        .pricing { padding: 100px 0; background-color: #fafafa; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+        .pricing-filter { display: flex; justify-content: center; gap: 10px; margin-bottom: 50px; flex-wrap: wrap; }
+        .filter-btn { padding: 12px 30px; border: 2px solid #eaeaea; background: #fff; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 0.95rem; color: #555; transition: 0.3s; }
+        .filter-btn.active, .filter-btn:hover { background: #000; color: #fff; border-color: #000; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+        .pricing-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; }
+        .pricing-card { background: #fff; border: 1px solid #eaeaea; border-radius: 12px; padding: 40px 25px; text-align: center; transition: all 0.4s ease; position: relative; overflow: hidden; display: flex; flex-direction: column; width: 100%; max-width: 340px; }
+        .pricing-card.hide { display: none; }
+        
+        .pricing-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+        .pricing-card.premium { border-color: #000; box-shadow: 0 15px 30px rgba(0,0,0,0.15); background-color: #000; color: #fff; transform: scale(1.05); z-index: 2; }
+        .pricing-card.premium:hover { transform: scale(1.05) translateY(-8px); }
+        .badge { position: absolute; top: 20px; right: -35px; background: #fff; color: #000; padding: 5px 40px; transform: rotate(45deg); font-size: 0.75rem; font-weight: bold; letter-spacing: 1px; }
+        .pricing-card h3 { font-size: 1.4rem; margin-bottom: 10px; }
+        .pricing-card.premium h3 { color: #fff; }
+        .price { font-size: 2.5rem; font-weight: 800; margin-bottom: 25px; }
+        .price span { font-size: 0.9rem; font-weight: normal; color: #888; display: block; margin-top: -5px; }
+        .pricing-card.premium .price span { color: #ccc; }
+        .pricing-features { list-style: none; margin-bottom: 35px; text-align: left; flex-grow: 1; padding: 0 10px; }
+        .pricing-features li { margin-bottom: 15px; font-size: 0.95rem; display: flex; align-items: flex-start; }
+        .pricing-features li::before { content: '✓'; font-weight: bold; margin-right: 12px; color: #000; }
+        .pricing-card.premium .pricing-features li { color: #ddd; }
+        .pricing-card.premium .pricing-features li::before { color: #fff; }
+        .highlight-royalty { font-weight: bold; color: #000; font-size: 1.05rem; }
+        .pricing-card.premium .highlight-royalty { color: #fff; }
+        
+        .btn-pricing { display: inline-block; width: 100%; padding: 14px; border: 1px solid #000; border-radius: 30px; font-weight: bold; color: #000; transition: 0.3s; margin-top: auto; text-align: center; }
+        .btn-pricing:hover { background: #000; color: #fff; }
+        .pricing-card.premium .btn-pricing { background: #fff; color: #000; border-color: #fff; }
+        .pricing-card.premium .btn-pricing:hover { background: #eee; color: #000; }
+
+        /* Artists / Roster Section */
+        .artists { padding: 100px 0; background-color: #000; color: #fff; }
+        .artists .section-title { color: #fff; }
+        .artist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; }
+        .artist-card { background-color: #111; border: 1px solid #333; border-radius: 12px; padding: 25px; text-align: center; transition: 0.4s; }
+        .artist-card:hover { border-color: #888; background-color: #1a1a1a; transform: translateY(-5px); }
+        .artist-img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background-color: #222; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .artist-card h4 { font-size: 1.3rem; margin-bottom: 5px; color: #fff; }
+        .artist-card p { font-size: 0.9rem; color: #aaa; margin-bottom: 20px; }
+        .btn-detail { display: inline-block; padding: 10px 20px; font-size: 0.85rem; color: #fff; border: 1px solid #555; border-radius: 30px; transition: 0.3s; font-weight: bold; }
+        .btn-detail:hover { background-color: #fff; color: #000; border-color: #fff; }
+
+        /* About & Legal Section */
+        .about { padding: 100px 0; background-color: #fff; }
+        .about-content { display: flex; flex-wrap: wrap; gap: 60px; align-items: center; }
+        .about-text { flex: 1; min-width: 300px; }
+        .about-text h2 { font-size: 2.5rem; margin-bottom: 25px; font-weight: 800; }
+        .about-text p { font-size: 1.1rem; color: #555; margin-bottom: 20px; }
+        .legal-box { flex: 1; min-width: 300px; background-color: #fafafa; padding: 50px; border-radius: 16px; border: 1px solid #eaeaea; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+        .legal-box h3 { border-bottom: 3px solid #000; display: inline-block; padding-bottom: 8px; margin-bottom: 30px; font-size: 1.4rem; }
+        .legal-item { margin-bottom: 20px; }
+        .legal-item strong { display: block; color: #000; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .legal-item span { color: #666; font-size: 1.1rem; }
+
+        /* Footer */
+        footer { background-color: #050505; color: #fff; padding: 80px 0 30px 0; border-top: 1px solid #222; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; margin-bottom: 50px; }
+        .footer-logo img { width: 160px; filter: invert(1); margin-bottom: 25px; }
+        .footer-col h4 { font-size: 1.2rem; margin-bottom: 25px; color: #fff; font-weight: bold; }
+        .footer-col p, .footer-col a { color: #888; font-size: 0.95rem; margin-bottom: 12px; display: block; transition: 0.3s; }
+        .footer-col a:hover { color: #fff; padding-left: 5px; }
+        .copyright { text-align: center; color: #555; font-size: 0.9rem; padding-top: 30px; border-top: 1px solid #222; }
+
+        /* RESPONSIVE TABLET & MOBILE */
+        @media (max-width: 950px) {
+            .desktop-nav { display: none; } /* Sembunyikan menu di atas */
+            .hamburger { display: flex; } /* Tampilkan Hamburger Icon */
+            
+            .hero h1 { font-size: 3rem; }
+            .hero-bg-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); } /* Grid foto jadi 2x3 di HP */
+            .pricing-card.premium { transform: scale(1); }
+            .pricing-card.premium:hover { transform: translateY(-8px); }
+        }
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 2.5rem; }
+            .hero { padding: 120px 0; }
+            .filter-btn { padding: 10px 15px; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <img src="3128.png" alt="A2BA Music Group Logo">
+            </a>
+            
+            <div class="desktop-nav">
+                <a href="#layanan" class="link">Layanan</a>
+                <a href="#harga" class="link">Harga</a>
+                <a href="#artis" class="link">Artis</a>
+                <a href="#tentang" class="link">Tentang Kami</a>
+                <div class="auth-buttons">
+                    <a href="#login" class="btn-login" onclick="alert('Portal Login Musisi sedang dalam tahap pengembangan.')">Masuk</a>
+                    <a href="#daftar" class="btn-register" onclick="alert('Form Pendaftaran Musisi segera hadir!')">Daftar</a>
+                </div>
+            </div>
+
+            <div class="hamburger" id="hamburgerMenu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </header>
+
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+    <div class="sidebar" id="mobileSidebar">
+        <div class="sidebar-header">
+            <img src="3128.png" alt="A2BA Logo">
+            <button class="close-btn" id="closeSidebar">&times;</button>
+        </div>
+        <div class="sidebar-links">
+            <a href="#layanan" class="sidebar-link">Layanan</a>
+            <a href="#harga" class="sidebar-link">Harga</a>
+            <a href="#artis" class="sidebar-link">Artis</a>
+            <a href="#tentang" class="sidebar-link">Tentang Kami</a>
+            <div class="sidebar-auth">
+                <a href="#login" class="btn-login" onclick="alert('Portal Login Musisi sedang dalam tahap pengembangan.')">Masuk</a>
+                <a href="#daftar" class="btn-register" onclick="alert('Form Pendaftaran Musisi segera hadir!')">Daftar</a>
+            </div>
+        </div>
+    </div>
+
+    <section class="hero fade-up">
+        <div class="hero-bg-grid">
+            <img src="amiraldo.png" alt="Amiraldo">
+            <img src="fahmi.png" alt="Fahmi">
+            <img src="sound.png" alt="Sound">
+            <img src="klub.png" alt="Klub">
+            <img src="dansa.png" alt="Dansa">
+            <img src="pemuda.png" alt="Pemuda">
+        </div>
+        <div class="hero-overlay"></div>
+        <div class="container">
+            <h1>Platform Distribusi<br>Musik Era Digital</h1>
+            <p>A2BA Music Group adalah rumah bagi karya-karyamu. Bergabunglah bersama puluhan artis kami dan distribusikan lagumu secara global hari ini juga.</p>
+            <div class="hero-buttons">
+                <a href="#harga" class="btn-hero">Rilis Sekarang</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="layanan" class="services">
+        <div class="container fade-up">
+            <h2 class="section-title">Solusi Terpadu untuk Musisi</h2>
+            <div class="grid-3">
+                <div class="card">
+                    <h3>Global Distribution</h3>
+                    <p>Kami mengirimkan lagumu ke lebih dari 150+ Digital Service Provider (DSP) di seluruh dunia dengan proses yang cepat dan transparan.</p>
+                </div>
+                <div class="card">
+                    <h3>Music Publishing</h3>
+                    <p>Klaim royalti dari penggunaan lagumu di YouTube, TV, radio, hingga media komersial lainnya secara legal dan terstruktur.</p>
+                </div>
+                <div class="card">
+                    <h3>Dashboard & Analytics</h3>
+                    <p>Pantau perkembangan pendengarmu dan tarik pendapatan royaltimu kapan saja melalui portal dasbor musisi kami.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="harga" class="pricing">
+        <div class="container fade-up">
+            <h2 class="section-title">Pilih Paket Rilismu</h2>
+            
+            <div class="pricing-filter">
+                <button class="filter-btn active" data-target="gratis" onclick="filterPricing('gratis', this)">Gratis</button>
+                <button class="filter-btn" data-target="langganan" onclick="filterPricing('langganan', this)">Berlangganan</button>
+                <button class="filter-btn" data-target="sekali-bayar" onclick="filterPricing('sekali-bayar', this)">Sekali Bayar</button>
+                <button class="filter-btn" data-target="semua" onclick="filterPricing('semua', this)">Semua Paket</button>
+            </div>
+
+            <div class="pricing-grid" id="pricingGrid">
+                
+                <div class="pricing-card" data-category="gratis">
+                    <h3>Gratis</h3>
+                    <div class="price">Rp 0<span>/selamanya</span></div>
+                    <ul class="pricing-features">
+                        <li class="highlight-royalty">Royalti 80% Musisi</li>
+                        <li>Unlimited Rilis Selamanya</li>
+                        <li>Distribusi ke 150+ DSP</li>
+                        <li>Penerbitan Lirik (Spotify/Apple)</li>
+                        <li>Content ID YouTube</li>
+                        <li>Akses Dashboard Basic</li>
+                    </ul>
+                    <a href="#daftar" class="btn-pricing">Mulai Gratis</a>
+                </div>
+
+                <div class="pricing-card hide" data-category="langganan">
+                    <h3>Mingguan</h3>
+                    <div class="price">15K<span>/minggu</span></div>
+                    <ul class="pricing-features">
+                        <li class="highlight-royalty">Royalti 85% Musisi</li>
+                        <li>Unlimited Rilis</li>
+                        <li>Distribusi ke 150+ DSP</li>
+                        <li>Penerbitan Lirik (Spotify/Apple)</li>
+                        <li>Content ID YouTube</li>
+                        <li>Akses Dashboard</li>
+                    </ul>
+                    <a href="#daftar" class="btn-pricing">Pilih Paket</a>
+                </div>
+
+                <div class="pricing-card hide" data-category="langganan">
+                    <h3>Bulanan</h3>
+                    <div class="price">50K<span>/bulan</span></div>
+                    <ul class="pricing-features">
+                        <li class="highlight-royalty">Royalti 90% Musisi</li>
+                        <li>Unlimited Rilis</li>
+                        <li>Distribusi ke 150+ DSP</li>
+                        <li>Penerbitan Lirik (Spotify/Apple)</li>
+                        <li>Content ID YouTube</li>
+                        <li>Akses Dashboard</li>
+                    </ul>
+                    <a href="#daftar" class="btn-pricing">Pilih Paket</a>
+                </div>
+
+                <div class="pricing-card hide" data-category="langganan">
+                    <h3>Tahunan</h3>
+                    <div class="price">350K<span>/tahun</span></div>
+                    <ul class="pricing-features">
+                        <li class="highlight-royalty">Royalti 95% Musisi</li>
+                        <li>Unlimited Rilis</li>
+                        <li>Distribusi ke 150+ DSP</li>
+                        <li>Penerbitan Lirik & Sinkronisasi</li>
+                        <li>Content ID YouTube</li>
+                        <li>Akses Dashboard Pro</li>
+                    </ul>
+                    <a href="#daftar" class="btn-pricing">Pilih Paket</a>
+                </div>
+
+                <div class="pricing-card hide" data-category="sekali-bayar">
+                    <h3>Per Rilis</h3>
+                    <div class="price">100K<span>/rilis</span></div>
+                    <ul class="pricing-features">
+                        <li class="highlight-royalty">Royalti 100% Musisi</li>
+                        <li>1 Single / Album (Max 12 Track)</li>
+                        <li>Sekali Bayar Selamanya</li>
+                        <li>Penerbitan Lirik & Sinkronisasi</li>
+                        <li>Content ID YouTube</li>
+                    </ul>
+                    <a href="#daftar" class="btn-pricing">Pilih Paket</a>
+                </div>
+
+                <div class="pricing-card premium hide" data-category="sekali-bayar">
+                    <div class="badge">TERBAIK</div>
+                    <h3>Lifetime Pro</h3>
+                    <div class="price">500K<span>/selamanya</span></div>
+                    <ul class="pricing-features">
+                        <li class="highlight-royalty">Royalti 100% Musisi</li>
+                        <li>Unlimited Rilis Selamanya</li>
+                        <li>Distribusi ke 150+ DSP</li>
+                        <li>Penerbitan Lirik & Sinkronisasi VIP</li>
+                        <li>Content ID YouTube</li>
+                        <li>Akses Dashboard Pro</li>
+                    </ul>
+                    <a href="#daftar" class="btn-pricing">Ambil Penawaran</a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="artis" class="artists">
+        <div class="container fade-up">
+            <h2 class="section-title">Artis & Label Kami</h2>
+            <div class="artist-grid">
+                <div class="artist-card">
+                    <img src="amiraldo.png" alt="Amiraldo" class="artist-img">
+                    <h4>Amiraldo</h4>
+                    <p>Pop Dangdut</p>
+                    <a href="#detail-amiraldo" class="btn-detail">Detail Artis</a>
+                </div>
+                <div class="artist-card">
+                    <img src="fahmi.png" alt="Fahmi Raditya" class="artist-img">
+                    <h4>Fahmi Raditya</h4>
+                    <p>Pop Rock</p>
+                    <a href="#detail-fahmi" class="btn-detail">Detail Artis</a>
+                </div>
+                <div class="artist-card">
+                    <img src="sound.png" alt="Sound of Nine" class="artist-img">
+                    <h4>Sound of Nine</h4>
+                    <p>Paduan Suara</p>
+                    <a href="#detail-sound" class="btn-detail">Detail Artis</a>
+                </div>
+                <div class="artist-card">
+                    <img src="klub.png" alt="Klub Dansa Pemuda" class="artist-img">
+                    <h4>Klub Dansa Pemuda</h4>
+                    <p>Pop Rock</p>
+                    <a href="#detail-klub" class="btn-detail">Detail Artis</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="tentang" class="about">
+        <div class="container about-content fade-up">
+            <div class="about-text">
+                <h2>Tentang A2BA</h2>
+                <p><strong>A2BA Music Group</strong> adalah anak perusahaan dari <strong>aldotune</strong> yang dirancang khusus untuk memberikan ekosistem tata kelola musik yang lebih canggih dan menyeluruh.</p>
+                <p>Seluruh layanan distribusi musik dan <em>publishing</em> dari aldotune kini dikelola sepenuhnya oleh <strong>A2BA</strong> dengan fasilitas <em>dashboard</em> artis yang lebih lengkap, transparan, dan profesional.</p>
+                <p>A2BA Music Group beroperasi secara legal di bawah naungan perusahaan induk yang dipimpin oleh <strong>Amiraldo Billy Aldiansyah</strong>, memastikan seluruh hak cipta dan royalti musisi terlindungi secara hukum.</p>
+            </div>
+            
+            <div class="legal-box">
+                <h3>Identitas Perusahaan Induk</h3>
+                <div class="legal-item">
+                    <strong>Founder / Penanggung Jawab</strong>
+                    <span>Amiraldo Billy Aldiansyah</span>
+                </div>
+                <div class="legal-item">
+                    <strong>Nomor Induk Berusaha (NIB)</strong>
+                    <span>1702260042091</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container fade-up">
+            <div class="footer-grid">
+                <div class="footer-col footer-logo">
+                    <img src="3128.png" alt="A2BA Music Group">
+                    <p style="margin-top: 15px;">Your Trusted Partner in Music Distribution & Publishing.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Navigasi</h4>
+                    <a href="#layanan">Layanan</a>
+                    <a href="#harga">Paket Rilis</a>
+                    <a href="#artis">Daftar Artis</a>
+                    <a href="#tentang">Tentang Kami</a>
+                    <a href="#login">Login Musisi</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Bantuan & Kontak</h4>
+                    <a href="mailto:aldotune.com@gmail.com">aldotune.com@gmail.com</a>
+                    <a href="#">Syarat & Ketentuan</a>
+                    <a href="#">Kebijakan Privasi</a>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2026 A2BA Music Group. Semua Hak Dilindungi. Terdaftar di sistem OSS Republik Indonesia.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 1. Logika Menu Sidebar (Hamburger) Mobile
+        const hamburgerMenu = document.getElementById('hamburgerMenu');
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const mobileOverlay = document.getElementById('mobileOverlay');
+        const closeSidebarBtn = document.getElementById('closeSidebar');
+        const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+        function toggleSidebar() {
+            mobileSidebar.classList.toggle('active');
+            mobileOverlay.classList.toggle('active');
+        }
+
+        // Buka Sidebar saat klik Hamburger
+        hamburgerMenu.addEventListener('click', toggleSidebar);
+        // Tutup Sidebar saat klik X, atau area gelap (overlay)
+        closeSidebarBtn.addEventListener('click', toggleSidebar);
+        mobileOverlay.addEventListener('click', toggleSidebar);
+        // Tutup Sidebar otomatis saat salah satu menu diklik
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', toggleSidebar);
+        });
+
+
+        // 2. Logika Filter Harga
+        function filterPricing(category, btnElement) {
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            const cards = document.querySelectorAll('.pricing-card');
+            cards.forEach(card => {
+                if (category === 'semua') {
+                    card.classList.remove('hide');
+                } else {
+                    if (card.getAttribute('data-category') === category) {
+                        card.classList.remove('hide');
+                    } else {
+                        card.classList.add('hide');
+                    }
+                }
+            });
+        }
+
+        // 3. Logika Animasi Scroll Muncul Perlahan
+        document.addEventListener("DOMContentLoaded", () => {
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.15 
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('show');
+                        observer.unobserve(entry.target); 
+                    }
+                });
+            }, observerOptions);
+
+            const fadeElements = document.querySelectorAll('.fade-up');
+            fadeElements.forEach(el => observer.observe(el));
+        });
+    </script>
+
+</body>
+</html>
