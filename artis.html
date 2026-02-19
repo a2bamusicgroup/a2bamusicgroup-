@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Artis | A2BA Music Group</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 font-family=%22Arial, sans-serif%22 font-weight=%22bold%22 fill=%22black%22>A</text></svg>">
+
+    <style>
+        /* Reset & Base Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #222; background-color: #f9f9f9; line-height: 1.6; scroll-behavior: smooth; overflow-x: hidden; }
+        a { text-decoration: none; color: inherit; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 5%; }
+
+        /* NAVBAR & HEADER */
+        header { background-color: #fff; border-bottom: 1px solid #eaeaea; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; height: 80px; }
+        .logo img { height: 45px; object-fit: contain; }
+        .desktop-nav { display: flex; gap: 20px; align-items: center; }
+        .desktop-nav a.link { font-weight: 600; font-size: 0.95rem; color: #555; transition: color 0.3s; }
+        .desktop-nav a.link:hover { color: #000; }
+        .auth-buttons { display: flex; gap: 10px; margin-left: 20px; }
+        .btn-login { padding: 8px 20px; border: 1px solid #000; border-radius: 30px; font-weight: bold; color: #000; transition: 0.3s; text-align: center; }
+        .btn-login:hover { background-color: #f4f4f4; }
+        .btn-register { padding: 8px 20px; background-color: #000; border: 1px solid #000; border-radius: 30px; font-weight: bold; color: #fff; transition: 0.3s; text-align: center; }
+        .btn-register:hover { background-color: #333; }
+
+        /* Hamburger Icon */
+        .hamburger { display: none; flex-direction: column; gap: 6px; cursor: pointer; z-index: 1001; }
+        .hamburger span { width: 30px; height: 3px; background-color: #000; border-radius: 3px; transition: 0.3s; }
+
+        /* MOBILE SIDEBAR */
+        .mobile-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: rgba(0,0,0,0.6); z-index: 1999; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .mobile-overlay.active { opacity: 1; visibility: visible; }
+        .sidebar { position: fixed; top: 0; right: -300px; width: 280px; height: 100vh; background-color: #fff; z-index: 2000; box-shadow: -5px 0 15px rgba(0,0,0,0.1); transition: right 0.4s cubic-bezier(0.77, 0, 0.175, 1); display: flex; flex-direction: column; }
+        .sidebar.active { right: 0; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; border-bottom: 1px solid #eee; }
+        .sidebar-header img { height: 35px; }
+        .close-btn { font-size: 2rem; background: none; border: none; cursor: pointer; color: #333; line-height: 1; }
+        .sidebar-links { padding: 25px; display: flex; flex-direction: column; gap: 20px; }
+        .sidebar-links a.sidebar-link { font-size: 1.1rem; font-weight: 600; color: #333; border-bottom: 1px solid #f4f4f4; padding-bottom: 10px; }
+        .sidebar-auth { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
+        .sidebar-auth .btn-login, .sidebar-auth .btn-register { width: 100%; padding: 12px; }
+
+        /* PAGE HEADER */
+        .page-header { background-color: #000; color: #fff; padding: 80px 0 60px 0; text-align: center; }
+        .page-header h1 { font-size: 3rem; font-weight: 800; margin-bottom: 15px; letter-spacing: -1px; }
+        .page-header p { font-size: 1.1rem; color: #ccc; max-width: 600px; margin: 0 auto; }
+        
+        .btn-back-page { display: inline-flex; align-items: center; justify-content: center; padding: 10px 25px; background-color: transparent; color: #fff; border: 1px solid #555; border-radius: 30px; font-weight: bold; font-size: 0.95rem; margin-bottom: 30px; transition: 0.3s; }
+        .btn-back-page:hover { background-color: #fff; color: #000; border-color: #fff; }
+
+        /* SEARCH BAR SECTION */
+        .search-section { padding: 40px 0; background-color: #fff; border-bottom: 1px solid #eaeaea; position: sticky; top: 80px; z-index: 99; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
+        .search-container { max-width: 600px; margin: 0 auto; position: relative; }
+        .search-input { width: 100%; padding: 15px 25px; padding-left: 50px; font-size: 1.1rem; border: 2px solid #eaeaea; border-radius: 40px; outline: none; transition: 0.3s; font-family: inherit; }
+        .search-input:focus { border-color: #000; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; fill: #999; }
+
+        /* ARTIST GRID SECTION */
+        .roster-section { padding: 80px 0; min-height: 50vh; }
+        .artist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 30px; }
+        
+        /* Kartu Artis Diperbarui untuk Mode Terang/Abu */
+        .artist-card { background-color: #fff; border: 1px solid #eaeaea; border-radius: 12px; padding: 25px; text-align: center; transition: 0.4s; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .artist-card:hover { border-color: #000; transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+        .artist-img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background-color: #eee; margin-bottom: 20px; border-radius: 8px; }
+        .artist-card h4 { font-size: 1.4rem; margin-bottom: 5px; color: #000; }
+        .artist-card p { font-size: 0.95rem; color: #666; margin-bottom: 20px; font-weight: 500; }
+        .btn-detail { display: inline-block; padding: 10px 20px; font-size: 0.85rem; color: #000; border: 1px solid #ccc; border-radius: 30px; transition: 0.3s; font-weight: bold; width: 100%; }
+        .artist-card:hover .btn-detail { background-color: #000; color: #fff; border-color: #000; }
+
+        /* Pesan Jika Artis Tidak Ditemukan */
+        .no-results { text-align: center; padding: 50px 0; font-size: 1.2rem; color: #888; display: none; grid-column: 1 / -1; }
+
+        /* Footer */
+        footer { background-color: #050505; color: #fff; padding: 80px 0 30px 0; border-top: 1px solid #222; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; margin-bottom: 50px; }
+        .footer-logo img { width: 160px; filter: invert(1); margin-bottom: 25px; }
+        .footer-col h4 { font-size: 1.2rem; margin-bottom: 25px; color: #fff; font-weight: bold; }
+        .footer-col p, .footer-col a { color: #888; font-size: 0.95rem; margin-bottom: 12px; display: block; transition: 0.3s; }
+        .footer-col a:hover { color: #fff; padding-left: 5px; }
+        .copyright { text-align: center; color: #555; font-size: 0.9rem; padding-top: 30px; border-top: 1px solid #222; }
+
+        /* FLOATING WA BUTTON */
+        .wa-float { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background-color: #25d366; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 9999; transition: transform 0.3s, box-shadow 0.3s; }
+        .wa-float:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+        .wa-float svg { width: 35px; height: 35px; fill: currentColor; }
+
+        /* Responsive */
+        @media (max-width: 950px) {
+            .desktop-nav { display: none; } 
+            .hamburger { display: flex; } 
+        }
+        @media (max-width: 480px) {
+            .page-header h1 { font-size: 2.2rem; }
+            .search-section { top: 70px; padding: 25px 0; }
+            .search-input { font-size: 1rem; padding: 12px 20px; padding-left: 45px; }
+            .wa-float { width: 50px; height: 50px; bottom: 20px; right: 20px; }
+            .wa-float svg { width: 28px; height: 28px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container nav-container">
+            <a href="index.html" class="logo">
+                <img src="3128.png" alt="A2BA Music Group Logo">
+            </a>
+            
+            <div class="desktop-nav">
+                <a href="index.html#layanan" class="link">Layanan</a>
+                <a href="index.html#harga" class="link">Harga</a>
+                <a href="artis.html" class="link" style="color: #000;">Artis</a>
+                <a href="index.html#tentang" class="link">Tentang Kami</a>
+                <div class="auth-buttons">
+                    <a href="login.html" class="btn-login">Masuk</a>
+                    <a href="login.html" class="btn-register">Daftar</a>
+                </div>
+            </div>
+
+            <div class="hamburger" id="hamburgerMenu">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </header>
+
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+    <div class="sidebar" id="mobileSidebar">
+        <div class="sidebar-header">
+            <img src="3128.png" alt="A2BA Logo">
+            <button class="close-btn" id="closeSidebar">&times;</button>
+        </div>
+        <div class="sidebar-links">
+            <a href="index.html#layanan" class="sidebar-link">Layanan</a>
+            <a href="index.html#harga" class="sidebar-link">Harga</a>
+            <a href="artis.html" class="sidebar-link" style="color: #000;">Artis</a>
+            <a href="index.html#tentang" class="sidebar-link">Tentang Kami</a>
+            <div class="sidebar-auth">
+                <a href="login.html" class="btn-login">Masuk</a>
+                <a href="login.html" class="btn-register">Daftar</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-header">
+        <div class="container">
+            <a href="javascript:history.back()" class="btn-back-page">&larr; Kembali</a>
+            <h1>Roster Artis aldotune</h1>
+            <p>Jelajahi talenta luar biasa yang mendistribusikan karya mereka secara global melalui ekosistem A2BA Music Group.</p>
+        </div>
+    </div>
+
+    <div class="search-section">
+        <div class="container search-container">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+            </svg>
+            <input type="text" id="searchInput" class="search-input" placeholder="Cari nama artis atau genre musik...">
+        </div>
+    </div>
+
+    <div class="roster-section">
+        <div class="container">
+            <div class="artist-grid" id="artistGrid">
+                
+                <div class="artist-card">
+                    <img src="amiraldo.png" alt="Amiraldo" class="artist-img">
+                    <h4>Amiraldo</h4>
+                    <p>Pop Dangdut</p>
+                </div>
+
+                <div class="artist-card">
+                    <img src="fahmi.png" alt="Fahmi Raditya" class="artist-img">
+                    <h4>Fahmi Raditya</h4>
+                    <p>Pop Rock</p>
+                </div>
+
+                <div class="artist-card">
+                    <img src="sound.png" alt="Sound of Nine" class="artist-img">
+                    <h4>Sound of Nine</h4>
+                    <p>Paduan Suara</p>
+                </div>
+
+                <div class="artist-card">
+                    <img src="klub.png" alt="Klub Dansa" class="artist-img">
+                    <h4>Klub Dansa Pemuda</h4>
+                    <p>Pop Rock</p>
+                </div>
+
+                <div class="artist-card">
+                    <img src="dansa.png" alt="Dansa Senja" class="artist-img">
+                    <h4>Klub Dansa Pemuda</h4>
+                    <p>Pop Rock</p>
+                </div>
+
+                <div class="artist-card">
+                    <img src="pemuda.png" alt="Pemuda Berkarya" class="artist-img">
+                    <h4>Klub Dansa Pemuda</h4>
+                    <p>Pop Rock</p>
+                </div>
+
+                <div class="no-results" id="noResults">
+                    Pencarian tidak menemukan artis atau genre yang cocok.
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col footer-logo">
+                    <img src="3128.png" alt="A2BA Music Group">
+                    <p style="margin-top: 15px;">Your Trusted Partner in Music Distribution & Publishing.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Navigasi</h4>
+                    <a href="index.html#layanan">Layanan</a>
+                    <a href="index.html#harga">Paket Rilis</a>
+                    <a href="artis.html">Daftar Artis</a>
+                    <a href="index.html#tentang">Tentang Kami</a>
+                    <a href="login.html">Login Musisi</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Bantuan & Kontak</h4>
+                    <a href="https://wa.me/6285385184618" target="_blank">WhatsApp: +62 853-8518-4618</a>
+                    <a href="syarat.html">Syarat & Ketentuan</a>
+                    <a href="privasi.html">Kebijakan Privasi</a>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2026 A2BA Music Group. Semua Hak Dilindungi. Terdaftar di sistem OSS Republik Indonesia.
+            </div>
+        </div>
+    </footer>
+
+    <a href="https://wa.me/6285385184618" class="wa-float" target="_blank" aria-label="Hubungi via WhatsApp">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+            <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7 .9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/>
+        </svg>
+    </a>
+
+    <script>
+        // Logika Sidebar Mobile
+        const hamburgerMenu = document.getElementById('hamburgerMenu');
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const mobileOverlay = document.getElementById('mobileOverlay');
+        const closeSidebarBtn = document.getElementById('closeSidebar');
+        
+        function toggleSidebar() {
+            mobileSidebar.classList.toggle('active');
+            mobileOverlay.classList.toggle('active');
+        }
+
+        hamburgerMenu.addEventListener('click', toggleSidebar);
+        closeSidebarBtn.addEventListener('click', toggleSidebar);
+        mobileOverlay.addEventListener('click', toggleSidebar);
+
+
+        // Logika Pencarian Artis (Search Bar)
+        const searchInput = document.getElementById('searchInput');
+        const artistCards = document.querySelectorAll('.artist-card');
+        const noResults = document.getElementById('noResults');
+
+        searchInput.addEventListener('keyup', function() {
+            const query = searchInput.value.toLowerCase();
+            let hasResult = false;
+
+            artistCards.forEach(card => {
+                // Mengambil teks nama artis (h4) dan genre (p)
+                const name = card.querySelector('h4').textContent.toLowerCase();
+                const genre = card.querySelector('p').textContent.toLowerCase();
+
+                // Jika query cocok dengan nama ATAU genre, tampilkan
+                if (name.includes(query) || genre.includes(query)) {
+                    card.style.display = 'block';
+                    hasResult = true;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Tampilkan pesan "Pencarian tidak menemukan artis..." jika tidak ada yang cocok
+            if (hasResult) {
+                noResults.style.display = 'none';
+            } else {
+                noResults.style.display = 'block';
+            }
+        });
+    </script>
+
+</body>
+</html>
