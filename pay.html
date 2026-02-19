@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pembayaran | A2BA Music Group</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 font-family=%22Arial, sans-serif%22 font-weight=%22bold%22 fill=%22black%22>A</text></svg>">
+
+    <style>
+        /* Reset & Base Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #222; background-color: #f4f7f6; line-height: 1.6; }
+        a { text-decoration: none; color: inherit; }
+
+        /* HEADER CHECKOUT */
+        header { background-color: #fff; padding: 20px 5%; border-bottom: 1px solid #eaeaea; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .logo img { height: 40px; object-fit: contain; }
+        .btn-back { font-size: 0.9rem; font-weight: bold; color: #555; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-back:hover { color: #000; }
+        .btn-back svg { width: 16px; height: 16px; fill: currentColor; }
+
+        /* LAYOUT UTAMA CHECKOUT */
+        .checkout-container { max-width: 1100px; margin: 40px auto; padding: 0 5%; display: flex; gap: 30px; align-items: flex-start; }
+        
+        /* KOLOM KIRI (Form & Metode) */
+        .checkout-left { flex: 1.5; display: flex; flex-direction: column; gap: 25px; }
+        .box-section { background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); border: 1px solid #eaeaea; }
+        .box-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 20px; color: #000; border-bottom: 2px solid #f4f4f4; padding-bottom: 10px; }
+
+        /* Form Input */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; color: #444; }
+        .form-control { width: 100%; padding: 12px 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; outline: none; transition: 0.3s; font-family: inherit; }
+        .form-control:focus { border-color: #000; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
+        .form-row { display: flex; gap: 15px; }
+        .form-row .form-group { flex: 1; }
+
+        /* KARTU PILIH PAKET */
+        .package-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .pkg-card { position: relative; border: 2px solid #eaeaea; border-radius: 10px; padding: 20px 15px; cursor: pointer; transition: 0.3s; background: #fff; display: flex; align-items: flex-start; gap: 15px; }
+        .pkg-card:hover { border-color: #aaa; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .pkg-card.active { border-color: #000; background: #fafafa; }
+        
+        .custom-radio { width: 22px; height: 22px; border: 2px solid #ccc; border-radius: 50%; position: relative; flex-shrink: 0; margin-top: 2px; }
+        .pkg-card.active .custom-radio, .pay-method.active .custom-radio { border-color: #000; }
+        .pkg-card.active .custom-radio::after, .pay-method.active .custom-radio::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background: #000; border-radius: 50%; }
+        
+        .pkg-info h4 { font-size: 1.05rem; margin-bottom: 2px; color: #000; }
+        .pkg-info .pkg-price { font-size: 1.2rem; font-weight: 800; color: #000; margin-bottom: 5px; }
+        .pkg-info .pkg-desc { font-size: 0.8rem; color: #666; line-height: 1.4; }
+        .badge-best { position: absolute; top: -10px; right: 15px; background: #000; color: #fff; font-size: 0.7rem; font-weight: bold; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+
+        /* Metode Pembayaran */
+        .payment-methods { display: flex; flex-direction: column; gap: 12px; }
+        .pay-method { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border: 2px solid #eaeaea; border-radius: 8px; cursor: pointer; transition: 0.3s; background: #fff; }
+        .pay-method:hover { border-color: #aaa; }
+        .pay-method.active { border-color: #000; background: #fafafa; }
+        .pay-method-left { display: flex; align-items: center; gap: 15px; }
+        .pay-name { font-weight: 600; font-size: 1rem; }
+        .pay-desc { font-size: 0.8rem; color: #888; }
+        .pay-icon { font-weight: bold; font-size: 1.2rem; color: #000; }
+
+        /* KOLOM KANAN (Ringkasan Dinamis) */
+        .checkout-right { flex: 1; background: #000; color: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: sticky; top: 100px; }
+        .summary-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        
+        .order-item { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.05rem; }
+        .order-item.subtext { font-size: 0.85rem; color: #aaa; margin-top: -10px; margin-bottom: 20px; }
+        .order-total { display: flex; justify-content: space-between; margin-top: 25px; padding-top: 20px; border-top: 1px solid #333; font-size: 1.4rem; font-weight: 800; }
+        
+        .btn-pay { width: 100%; padding: 16px; background: #fff; color: #000; font-size: 1.1rem; font-weight: bold; border: none; border-radius: 8px; margin-top: 30px; cursor: pointer; transition: 0.3s; }
+        .btn-pay:hover { background: #eee; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
+        
+        .secure-badge { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 20px; font-size: 0.8rem; color: #aaa; text-align: center; }
+        .secure-badge svg { width: 14px; height: 14px; fill: currentColor; }
+
+        /* MODAL POPUP STYLES */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .modal-icon { font-size: 3rem; margin-bottom: 20px; }
+        .modal-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 15px; color: #000; }
+        .modal-desc { font-size: 1rem; color: #666; margin-bottom: 25px; line-height: 1.5; }
+        
+        .modal-btn { 
+            display: inline-block; width: 100%; padding: 12px; 
+            background: #000; color: #fff; border: none; border-radius: 30px; 
+            font-weight: bold; cursor: pointer; text-decoration: none; transition: 0.3s;
+        }
+        .modal-btn:hover { background: #333; }
+        .modal-btn-secondary { background: transparent; color: #555; border: 1px solid #ccc; margin-top: 10px; }
+        .modal-btn-secondary:hover { background: #f4f4f4; color: #000; }
+
+        /* Footer */
+        .checkout-footer { text-align: center; padding: 40px 5%; font-size: 0.85rem; color: #888; }
+
+        /* Responsif */
+        @media (max-width: 850px) {
+            .checkout-container { flex-direction: column; }
+            .checkout-left, .checkout-right { width: 100%; }
+            .checkout-right { position: relative; top: 0; }
+            .form-row { flex-direction: column; gap: 0; }
+            .package-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">
+            <img src="3128.png" alt="A2BA Music Group Logo">
+        </a>
+        <a href="javascript:history.back()" class="btn-back">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+            Kembali
+        </a>
+    </header>
+
+    <div class="checkout-container">
+        
+        <div class="checkout-left">
+            
+            <div class="box-section">
+                <div class="box-title">Pilih Paket Rilis</div>
+                <div class="package-grid">
+                    
+                    <div class="pkg-card" onclick="pilihPaket(this, 'Mingguan', '15.000', 'Royalti 85% - Akses 1 Minggu')">
+                        <div class="custom-radio"></div>
+                        <div class="pkg-info">
+                            <h4>Mingguan</h4>
+                            <div class="pkg-price">Rp 15.000</div>
+                            <div class="pkg-desc">Royalti 85% untuk Anda. Distribusi seluruh DSP dunia.</div>
+                        </div>
+                    </div>
+
+                    <div class="pkg-card" onclick="pilihPaket(this, 'Bulanan', '50.000', 'Royalti 90% - Akses 1 Bulan')">
+                        <div class="custom-radio"></div>
+                        <div class="pkg-info">
+                            <h4>Bulanan</h4>
+                            <div class="pkg-price">Rp 50.000</div>
+                            <div class="pkg-desc">Royalti 90% untuk Anda. Bebas rilis tanpa batas.</div>
+                        </div>
+                    </div>
+
+                    <div class="pkg-card" onclick="pilihPaket(this, 'Tahunan', '350.000', 'Royalti 95% - Akses 1 Tahun')">
+                        <div class="custom-radio"></div>
+                        <div class="pkg-info">
+                            <h4>Tahunan</h4>
+                            <div class="pkg-price">Rp 350.000</div>
+                            <div class="pkg-desc">Royalti 95% untuk Anda. Fitur Dashboard Pro penuh.</div>
+                        </div>
+                    </div>
+
+                    <div class="pkg-card" onclick="pilihPaket(this, 'Per Rilis', '100.000', 'Royalti 100% - Untuk 1 Rilisan')">
+                        <div class="custom-radio"></div>
+                        <div class="pkg-info">
+                            <h4>Per Rilis (Single)</h4>
+                            <div class="pkg-price">Rp 100.000</div>
+                            <div class="pkg-desc">Royalti 100%. Sekali bayar untuk rilis 1 Single/Album selamanya.</div>
+                        </div>
+                    </div>
+
+                    <div class="pkg-card active" onclick="pilihPaket(this, 'Lifetime Pro', '500.000', 'Royalti 100% - Unlimited Selamanya')" style="grid-column: 1 / -1;">
+                        <span class="badge-best">TERBAIK</span>
+                        <div class="custom-radio"></div>
+                        <div class="pkg-info">
+                            <h4>Lifetime Pro</h4>
+                            <div class="pkg-price">Rp 500.000</div>
+                            <div class="pkg-desc">Royalti 100% penuh untuk Anda selamanya. Akses rilis karya tanpa batas (Unlimited). Prioritas dukungan & Verifikasi.</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="box-section">
+                <div class="box-title">Informasi Musisi</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nama Lengkap (Sesuai KTP)</label>
+                        <input type="text" class="form-control" placeholder="Contoh: Budi Santoso" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nama Panggung / Artis</label>
+                        <input type="text" class="form-control" placeholder="Contoh: Budi Berkara" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Alamat Email</label>
+                        <input type="email" class="form-control" placeholder="email@anda.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nomor WhatsApp</label>
+                        <input type="tel" class="form-control" placeholder="08xxxxxxxxxx" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box-section">
+                <div class="box-title">Pilih Metode Pembayaran</div>
+                <div class="payment-methods">
+                    <div class="pay-method active" onclick="pilihMetode(this, 'QRIS')">
+                        <div class="pay-method-left">
+                            <div class="custom-radio"></div>
+                            <div>
+                                <div class="pay-name">QRIS (Standar Nasional)</div>
+                                <div class="pay-desc">Mendukung BRImo, GoPay, OVO, Dana, ShopeePay</div>
+                            </div>
+                        </div>
+                        <div class="pay-icon">QRIS</div>
+                    </div>
+                    <div class="pay-method" onclick="pilihMetode(this, 'Virtual Account')">
+                        <div class="pay-method-left">
+                            <div class="custom-radio"></div>
+                            <div>
+                                <div class="pay-name">Bank Transfer (Virtual Account)</div>
+                                <div class="pay-desc">Verifikasi otomatis dalam 10 menit</div>
+                            </div>
+                        </div>
+                        <div class="pay-icon">VA</div>
+                    </div>
+                    <div class="pay-method" onclick="pilihMetode(this, 'E-Wallet')">
+                        <div class="pay-method-left">
+                            <div class="custom-radio"></div>
+                            <div>
+                                <div class="pay-name">E-Wallet Direct</div>
+                                <div class="pay-desc">Bayar langsung via aplikasi E-Wallet Anda</div>
+                            </div>
+                        </div>
+                        <div class="pay-icon">PAY</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="checkout-right">
+            <div class="summary-title">Ringkasan Pembayaran</div>
+            
+            <div class="order-item">
+                <span>Paket Rilis</span>
+                <strong id="ringkasan-nama">Lifetime Pro</strong>
+            </div>
+            <div class="order-item subtext">
+                <span id="ringkasan-desc">Royalti 100% - Unlimited Selamanya</span>
+            </div>
+            
+            <div class="order-item">
+                <span>Biaya Layanan</span>
+                <span id="ringkasan-harga">Rp 500.000</span>
+            </div>
+            
+            <div class="order-item">
+                <span>Biaya Admin</span>
+                <span>Rp 0</span>
+            </div>
+
+            <div class="order-total">
+                <span>Total Bayar</span>
+                <span id="ringkasan-total">Rp 500.000</span>
+            </div>
+
+            <button class="btn-pay" onclick="showPaymentModal()">Selesaikan Pembayaran</button>
+
+            <div class="secure-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M400 224h-24v-72C376 68.2 307.8 0 224 0S72 68.2 72 152v72H48c-26.5 0-48 21.5-48 48v192c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V272c0-26.5-21.5-48-48-48zm-104 0H152v-72c0-39.7 32.3-72 72-72s72 32.3 72 72v72z"/></svg>
+                Pembayaran Aman & Terenkripsi 256-bit SSL
+            </div>
+        </div>
+
+    </div>
+
+    <div id="modalLoad" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-icon">⚠️</div>
+            <div class="modal-title">Halaman Simulasi (Demo)</div>
+            <div class="modal-desc">
+                Halo Musisi! Halaman ini adalah simulasi sistem pembayaran yang sedang kami kembangkan.<br><br>
+                Jika Anda ingin berlangganan paket A2BA Music Group sekarang, silakan hubungi tim kami secara manual melalui WhatsApp.
+            </div>
+            <a href="https://wa.me/6285385184618?text=Halo%20Admin%20A2BA,%20saya%20ingin%20berlangganan%20paket%20rilis%20secara%20manual." class="modal-btn">Hubungi Admin via WA</a>
+            <button class="modal-btn modal-btn-secondary" onclick="closeModal('modalLoad')">Lihat Simulasi Website</button>
+        </div>
+    </div>
+
+    <div id="modalPay" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-icon">🤝</div>
+            <div class="modal-title">Sistem Sedang Dikembangkan</div>
+            <div class="modal-desc">
+                Saat ini <strong>A2BA Music Group</strong> sedang menjajaki kerjasama dengan mitra pembayaran resmi (Payment Gateway) untuk keamanan transaksi Anda.<br><br>
+                Mohon selesaikan pembayaran paket pilihan Anda secara manual melalui WhatsApp Admin kami.
+            </div>
+            <a href="https://wa.me/6285385184618?text=Halo%20Admin,%20saya%20tertarik%20mengambil%20paket%20rilis%20di%20A2BA%20Music%20Group.%20Mohon%20bantuannya." class="modal-btn">Lanjut ke WhatsApp</a>
+            <button class="modal-btn modal-btn-secondary" onclick="closeModal('modalPay')">Batal</button>
+        </div>
+    </div>
+
+    <div class="checkout-footer">
+        &copy; 2026 A2BA Music Group - Amiraldo Billy Aldiansyah.<br>
+        Nomor Induk Berusaha (NIB): 1702260042091<br>
+        Terdaftar secara resmi sebagai sistem elektronik agregator digital.
+    </div>
+
+    <script>
+        // 1. Logika Modal
+        window.onload = function() {
+            // Munculkan Modal Load setelah halaman terbuka (delay sedikit biar smooth)
+            setTimeout(() => {
+                document.getElementById('modalLoad').style.display = 'flex';
+            }, 500);
+        }
+
+        function showPaymentModal() {
+            document.getElementById('modalPay').style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // 2. Logika Pilihan Paket & Metode (Sama seperti sebelumnya)
+        let orderData = { paket: 'Lifetime Pro', harga: '500.000', metode: 'QRIS' };
+
+        function pilihPaket(element, nama, harga, deskripsi) {
+            const packageCards = document.querySelectorAll('.pkg-card');
+            packageCards.forEach(card => card.classList.remove('active'));
+            element.classList.add('active');
+            
+            document.getElementById('ringkasan-nama').textContent = nama;
+            document.getElementById('ringkasan-desc').textContent = deskripsi;
+            document.getElementById('ringkasan-harga').textContent = 'Rp ' + harga;
+            document.getElementById('ringkasan-total').textContent = 'Rp ' + harga;
+        }
+
+        function pilihMetode(element, metode) {
+            const methods = document.querySelectorAll('.pay-method');
+            methods.forEach(m => m.classList.remove('active'));
+            element.classList.add('active');
+        }
+    </script>
+
+</body>
+</html>
