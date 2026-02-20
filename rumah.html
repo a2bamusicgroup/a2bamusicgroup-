@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifikasi Email | A2BA Music Group</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 font-family=%22Arial, sans-serif%22 font-weight=%22bold%22 fill=%22black%22>A</text></svg>">
+
+    <style>
+        /* Reset Dasar */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #ffffff; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start; 
+            min-height: 100vh; 
+        }
+
+        /* -------------------------------------------
+           ANIMASI LOADING AWAL
+           ------------------------------------------- */
+        .initial-loader {
+            position: fixed;
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 9999; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        
+        .spinner {
+            width: 40px; 
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #000000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        .initial-loader p {
+            font-size: 14px;
+            font-weight: 600;
+            color: #555555;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* -------------------------------------------
+           STYLE KONTEN VERIFIKASI
+           ------------------------------------------- */
+        .verifikasi-wrapper {
+            width: 100%;
+            max-width: 450px; 
+            padding: 0 20px 40px 20px; 
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .logo-container {
+            margin-top: 40px; 
+            margin-bottom: 30px;
+        }
+        .logo-container img {
+            height: 55px; 
+            object-fit: contain;
+        }
+
+        .icon-mail {
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+
+        .verifikasi-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 15px;
+        }
+
+        .verifikasi-desc {
+            font-size: 14px;
+            color: #555555;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .user-email-display {
+            font-weight: bold;
+            color: #000000;
+            background-color: #f7f7f7;
+            padding: 10px 15px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 30px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tombol-tombol */
+        .btn {
+            border: none;
+            border-radius: 50px; 
+            padding: 14px 0;
+            width: 100%; 
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .btn-black {
+            background-color: #000000; 
+            color: #ffffff;
+        }
+        .btn-black:hover {
+            background-color: #333333;
+        }
+        .btn-black:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: #000000;
+            border: 2px solid #dddddd;
+        }
+        .btn-outline:hover {
+            border-color: #000000;
+            background-color: #f9f9f9;
+        }
+
+        .btn-text-danger {
+            background: none;
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 13px;
+            margin-top: 15px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-text-danger:hover {
+            color: #c0392b;
+            text-decoration: underline;
+        }
+
+        /* MODAL POPUP */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; display: none; justify-content: center; align-items: center; padding: 20px; }
+        .modal-box { background: #fff; padding: 30px; border-radius: 8px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .modal-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .modal-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: #000; }
+        .modal-desc { font-size: 0.9rem; color: #555; margin-bottom: 20px; line-height: 1.5; }
+        .btn-modal-action { display: block; width: 100%; padding: 12px; border-radius: 4px; font-weight: bold; margin-bottom: 10px; cursor: pointer; border: none; font-size: 14px; background: #000; color: #fff; }
+        .btn-modal-action:hover { background: #333; }
+    </style>
+</head>
+<body>
+
+    <div id="initialLoader" class="initial-loader">
+        <div class="spinner"></div>
+        <p id="loaderText">Memeriksa status akun...</p>
+    </div>
+
+    <div class="verifikasi-wrapper" id="verifikasiContent" style="display: none;">
+        
+        <div class="logo-container">
+            <img src="3128.png" alt="A2BA Logo">
+        </div>
+
+        <div class="icon-mail">✉️</div>
+        <h1 class="verifikasi-title">Verifikasi Email Anda</h1>
+        
+        <p class="verifikasi-desc">
+            Untuk menjaga keamanan akun dan mengakses dasbor A2BA, silakan verifikasi alamat email Anda terlebih dahulu.
+        </p>
+
+        <div class="user-email-display" id="userEmailText">memuat email...</div>
+
+        <button id="btnKirimUlang" class="btn btn-black">KIRIM EMAIL VERIFIKASI</button>
+        <button id="btnCekStatus" class="btn btn-outline">SAYA SUDAH VERIFIKASI</button>
+        
+        <a href="#" id="btnLogout" class="btn-text-danger">Logout Akun</a>
+
+    </div>
+
+    <div id="alertModal" class="modal-overlay">
+        <div class="modal-box">
+            <div id="alertIcon" class="modal-icon">⚠️</div>
+            <div id="alertTitle" class="modal-title">Peringatan</div>
+            <div id="alertDesc" class="modal-desc">Pesan peringatan di sini.</div>
+            <button class="btn-modal-action" onclick="tutupModal('alertModal')">Mengerti</button>
+        </div>
+    </div>
+
+    <script>
+        function tampilkanAlert(judul, pesan, ikon = '⚠️') {
+            document.getElementById('alertTitle').innerText = judul;
+            document.getElementById('alertDesc').innerText = pesan;
+            document.getElementById('alertIcon').innerText = ikon;
+            document.getElementById('alertModal').style.display = 'flex';
+        }
+
+        function tutupModal(idModal) {
+            document.getElementById(idModal).style.display = 'none';
+        }
+
+        // --- SISTEM COUNTDOWN TIMER PERSISTEN ---
+        let timerInterval;
+
+        function jalankanCooldown(sisaDetik) {
+            const btn = document.getElementById('btnKirimUlang');
+            btn.disabled = true;
+            
+            let countdown = sisaDetik;
+            
+            // Bersihkan interval yang mungkin sedang jalan agar tidak menumpuk
+            if (timerInterval) clearInterval(timerInterval);
+
+            // Update tombol langsung sebelum interval 1 detik dimulai
+            btn.innerText = `Tunggu ${countdown} detik...`;
+
+            timerInterval = setInterval(() => {
+                countdown--;
+                if(countdown <= 0) {
+                    clearInterval(timerInterval);
+                    btn.innerText = "KIRIM EMAIL VERIFIKASI";
+                    btn.disabled = false;
+                    localStorage.removeItem('a2ba_resend_cooldown'); // Hapus data memori karena sudah selesai
+                } else {
+                    btn.innerText = `Tunggu ${countdown} detik...`;
+                }
+            }, 1000);
+        }
+
+        function cekCooldownSaatLoad() {
+            const savedCooldown = localStorage.getItem('a2ba_resend_cooldown');
+            if (savedCooldown) {
+                // Hitung selisih waktu sekarang dengan waktu selesai yang disimpan (dalam detik)
+                const waktuSelesai = parseInt(savedCooldown);
+                const waktuSekarang = Date.now();
+                const sisaDetik = Math.ceil((waktuSelesai - waktuSekarang) / 1000);
+
+                if (sisaDetik > 0) {
+                    // Lanjutkan hitungan mundur
+                    jalankanCooldown(sisaDetik);
+                } else {
+                    // Waktu sudah lewat saat browser ditutup
+                    localStorage.removeItem('a2ba_resend_cooldown');
+                }
+            }
+        }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVSvYDeBdQb7dT1YrQhLPRIDb12DcyF-I",
+            authDomain: "aldotune-5dfd0.firebaseapp.com",
+            databaseURL: "https://aldotune-5dfd0-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "aldotune-5dfd0",
+            storageBucket: "aldotune-5dfd0.firebasestorage.app",
+            messagingSenderId: "271598081160",
+            appId: "1:271598081160:web:30c803c825421f90597b3d",
+            measurementId: "G-LYV2T35KPT"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        const initialLoader = document.getElementById('initialLoader');
+        const loaderText = document.getElementById('loaderText');
+        const verifikasiContent = document.getElementById('verifikasiContent');
+        const userEmailText = document.getElementById('userEmailText');
+        
+        const btnKirimUlang = document.getElementById('btnKirimUlang');
+        const btnCekStatus = document.getElementById('btnCekStatus');
+        const btnLogout = document.getElementById('btnLogout');
+
+        let currentUser = null;
+
+        // CEK SESI SAAT HALAMAN DIMUAT
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                loaderText.innerText = "Anda belum login. Mengalihkan...";
+                window.location.href = 'login.html'; 
+            } else {
+                currentUser = user;
+                
+                if (user.emailVerified) {
+                    loaderText.innerText = "Email terverifikasi. Masuk ke Dasbor...";
+                    window.location.href = 'rumah.html';
+                } else {
+                    userEmailText.innerText = user.email;
+                    
+                    // Cek apakah ada timer sisa sebelum form ditampilkan
+                    cekCooldownSaatLoad();
+                    
+                    initialLoader.style.opacity = '0';
+                    setTimeout(() => {
+                        initialLoader.style.display = 'none';
+                        verifikasiContent.style.display = 'block'; 
+                    }, 500);
+                }
+            }
+        });
+
+        // FUNGSI: KIRIM ULANG EMAIL VERIFIKASI
+        btnKirimUlang.addEventListener('click', () => {
+            if(currentUser) {
+                btnKirimUlang.innerText = "MENGIRIM...";
+                btnKirimUlang.disabled = true;
+
+                sendEmailVerification(currentUser)
+                    .then(() => {
+                        tampilkanAlert("Berhasil Terkirim", "Tautan verifikasi telah dikirim ke " + currentUser.email + ". Silakan cek kotak masuk atau folder spam Anda.", "✅");
+                        
+                        const cooldownMiliDetik = 60 * 1000; // 60 detik
+                        const waktuSelesai = Date.now() + cooldownMiliDetik;
+                        
+                        // Simpan waktu selesai ke memori browser
+                        localStorage.setItem('a2ba_resend_cooldown', waktuSelesai.toString());
+                        
+                        // Jalankan timer visual
+                        jalankanCooldown(60);
+                    })
+                    .catch((error) => {
+                        btnKirimUlang.innerText = "KIRIM EMAIL VERIFIKASI";
+                        btnKirimUlang.disabled = false;
+
+                        if (error.code === 'auth/too-many-requests') {
+                            tampilkanAlert("Terlalu Sering", "Anda sudah meminta email verifikasi baru-baru ini. Silakan tunggu beberapa saat lalu coba lagi.", "⏱️");
+                        } else {
+                            tampilkanAlert("Kesalahan Sistem", "Gagal mengirim email: " + error.message, "⚠️");
+                        }
+                    });
+            }
+        });
+
+        // FUNGSI: CEK STATUS MANUAL
+        btnCekStatus.addEventListener('click', () => {
+            if(currentUser) {
+                btnCekStatus.innerText = "MEMERIKSA...";
+                
+                currentUser.reload().then(() => {
+                    if (currentUser.emailVerified) {
+                        tampilkanAlert("Sukses!", "Email Anda berhasil diverifikasi. Mengalihkan ke Dasbor...", "🎉");
+                        setTimeout(() => {
+                            window.location.href = 'rumah.html';
+                        }, 2000);
+                    } else {
+                        btnCekStatus.innerText = "SAYA SUDAH VERIFIKASI";
+                        tampilkanAlert("Belum Terverifikasi", "Sistem kami mendeteksi email Anda belum diverifikasi. Pastikan Anda telah mengklik tautan yang kami kirimkan ke kotak masuk Anda.", "🔍");
+                    }
+                }).catch((error) => {
+                    btnCekStatus.innerText = "SAYA SUDAH VERIFIKASI";
+                    tampilkanAlert("Kesalahan Sistem", "Gagal memeriksa status: " + error.message, "⚠️");
+                });
+            }
+        });
+
+        // FUNGSI: LOGOUT
+        btnLogout.addEventListener('click', (event) => {
+            event.preventDefault();
+            signOut(auth).then(() => {
+                // Logout berhasil
+            }).catch((error) => {
+                tampilkanAlert("Kesalahan Sistem", "Gagal logout: " + error.message, "⚠️");
+            });
+        });
+    </script>
+
+</body>
+</html>

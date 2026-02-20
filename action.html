@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proses Tindakan | A2BA Music Group</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 font-family=%22Arial, sans-serif%22 font-weight=%22bold%22 fill=%22black%22>A</text></svg>">
+
+    <style>
+        /* Reset Dasar */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #ffffff; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start; 
+            min-height: 100vh; 
+        }
+
+        .action-wrapper {
+            width: 100%;
+            max-width: 400px; 
+            padding: 0 20px 40px 20px; 
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .logo-container {
+            margin-top: 40px; 
+            margin-bottom: 30px;
+        }
+        .logo-container img {
+            height: 55px; 
+            object-fit: contain;
+        }
+
+        /* Status Teks & Ikon */
+        .status-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+        .status-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 10px;
+        }
+        .status-desc {
+            font-size: 14px;
+            color: #555555;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        /* Form Reset Password (Sembunyi by default) */
+        #resetPasswordForm {
+            display: none;
+            text-align: left;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            color: #555555;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 8px; 
+        }
+
+        .input-group input {
+            width: 100%;
+            background-color: #f7f7f7; 
+            border: none;
+            border-bottom: 2px solid #dddddd; 
+            border-radius: 4px 4px 0 0;
+            font-size: 15px;
+            color: #000000;
+            padding: 15px; 
+            padding-right: 45px; /* Ruang untuk ikon mata */
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .input-group input:focus {
+            border-bottom-color: #000000; 
+            background-color: #f0f0f0;
+        }
+
+        /* Ikon Toggle Password (Mata) */
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            bottom: 12px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #888888;
+            transition: 0.2s;
+        }
+        .toggle-password:hover { color: #000000; }
+        .toggle-password svg { width: 20px; height: 20px; fill: currentColor; }
+
+        /* Tombol */
+        .btn {
+            border: none;
+            border-radius: 50px; 
+            padding: 14px 0;
+            width: 100%; 
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 15px;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn-black { background-color: #000000; color: #ffffff; }
+        .btn-black:hover { background-color: #333333; }
+        .btn-black:disabled { background-color: #cccccc; cursor: not-allowed; }
+
+        /* Loader Animation */
+        .spinner {
+            width: 40px; 
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #000000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modal Serbaguna */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; display: none; justify-content: center; align-items: center; padding: 20px; }
+        .modal-box { background: #fff; padding: 30px; border-radius: 8px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .modal-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .modal-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: #000; }
+        .modal-desc { font-size: 0.9rem; color: #555; margin-bottom: 20px; line-height: 1.5; }
+        .btn-modal { display: block; width: 100%; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; border: none; font-size: 14px; background: #000; color: #fff; }
+        .btn-modal:hover { background: #333; }
+    </style>
+</head>
+<body>
+
+    <div class="action-wrapper">
+        <div class="logo-container">
+            <img src="3128.png" alt="A2BA Logo">
+        </div>
+
+        <div id="statusArea">
+            <div id="loadingSpinner" class="spinner"></div>
+            <div id="statusIcon" class="status-icon" style="display: none;"></div>
+            <h1 id="statusTitle" class="status-title">Memproses...</h1>
+            <p id="statusDesc" class="status-desc">Silakan tunggu, kami sedang memverifikasi tautan Anda.</p>
+        </div>
+
+        <form id="resetPasswordForm" autocomplete="off">
+            <p class="status-desc" style="margin-bottom: 20px;">Silakan masukkan password baru Anda. Pastikan password kuat dan mudah Anda ingat.</p>
+            
+            <div class="input-group">
+                <label>Password Baru</label>
+                <input type="password" id="newPassword" required minlength="6">
+                <button type="button" class="toggle-password" onclick="togglePassword('newPassword', 'eyeIcon1')">
+                    <svg id="eyeIcon1" viewBox="0 0 24 24"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+                </button>
+            </div>
+
+            <div class="input-group">
+                <label>Konfirmasi Password Baru</label>
+                <input type="password" id="confirmPassword" required minlength="6">
+                <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword', 'eyeIcon2')">
+                    <svg id="eyeIcon2" viewBox="0 0 24 24"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+                </button>
+            </div>
+
+            <button type="submit" id="btnUpdatePassword" class="btn btn-black">PERBARUI PASSWORD</button>
+        </form>
+
+        <div id="actionButtonContainer" style="display: none; margin-top: 20px;">
+            <a href="login.html" class="btn btn-black">KEMBALI KE HALAMAN LOGIN</a>
+        </div>
+
+    </div>
+
+    <div id="alertModal" class="modal-overlay">
+        <div class="modal-box">
+            <div id="alertIcon" class="modal-icon">⚠️</div>
+            <div id="alertTitle" class="modal-title">Peringatan</div>
+            <div id="alertDesc" class="modal-desc">Pesan peringatan di sini.</div>
+            <button class="btn-modal" onclick="document.getElementById('alertModal').style.display='none'">Mengerti</button>
+        </div>
+    </div>
+
+    <script>
+        function tampilkanAlert(judul, pesan, ikon = '⚠️') {
+            document.getElementById('alertTitle').innerText = judul;
+            document.getElementById('alertDesc').innerText = pesan;
+            document.getElementById('alertIcon').innerText = ikon;
+            document.getElementById('alertModal').style.display = 'flex';
+        }
+
+        function ubahTampilan(ikon, judul, deskripsi, tampilkanTombolHome = true) {
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('statusIcon').innerText = ikon;
+            document.getElementById('statusIcon').style.display = 'block';
+            document.getElementById('statusTitle').innerText = judul;
+            document.getElementById('statusDesc').innerText = deskripsi;
+            
+            if(tampilkanTombolHome) {
+                document.getElementById('actionButtonContainer').style.display = 'block';
+            }
+        }
+
+        // Toggle Password Visibility
+        function togglePassword(inputId, iconId) {
+            var input = document.getElementById(inputId);
+            var icon = document.getElementById(iconId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.innerHTML = '<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>';
+            } else {
+                input.type = "password";
+                icon.innerHTML = '<path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>';
+            }
+        }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, applyActionCode, verifyPasswordResetCode, confirmPasswordReset } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVSvYDeBdQb7dT1YrQhLPRIDb12DcyF-I",
+            authDomain: "aldotune-5dfd0.firebaseapp.com",
+            databaseURL: "https://aldotune-5dfd0-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "aldotune-5dfd0",
+            storageBucket: "aldotune-5dfd0.firebasestorage.app",
+            messagingSenderId: "271598081160",
+            appId: "1:271598081160:web:30c803c825421f90597b3d",
+            measurementId: "G-LYV2T35KPT"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // AMBIL PARAMETER DARI URL (mode dan oobCode)
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const actionCode = urlParams.get('oobCode');
+
+        // FUNGSI UTAMA: MENENTUKAN TINDAKAN BERDASARKAN URL
+        if (!mode || !actionCode) {
+            ubahTampilan("❌", "Tautan Tidak Valid", "Tautan yang Anda gunakan tidak valid atau telah kedaluwarsa. Silakan periksa kembali email Anda.");
+        } else {
+            
+            // --- 1. PROSES VERIFIKASI EMAIL ---
+            if (mode === 'verifyEmail') {
+                applyActionCode(auth, actionCode).then(() => {
+                    ubahTampilan("✅", "Verifikasi Berhasil", "Email Anda berhasil diverifikasi. Akun Anda kini aktif sepenuhnya. Silakan kembali ke halaman login.");
+                }).catch((error) => {
+                    ubahTampilan("⚠️", "Verifikasi Gagal", "Tautan tidak valid atau sudah pernah digunakan untuk verifikasi. " + error.message);
+                });
+            } 
+            
+            // --- 2. PROSES RESET PASSWORD ---
+            else if (mode === 'resetPassword') {
+                // Cek dulu apakah kodenya masih berlaku
+                verifyPasswordResetCode(auth, actionCode).then((email) => {
+                    // Kode valid, sembunyikan loading & tampilkan form reset password
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                    document.getElementById('statusTitle').innerText = "Perbarui Password";
+                    document.getElementById('statusDesc').innerText = "Akun Anda: " + email;
+                    document.getElementById('resetPasswordForm').style.display = 'block';
+
+                    // Logika submit password baru
+                    document.getElementById('resetPasswordForm').addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const newPass = document.getElementById('newPassword').value;
+                        const confirmPass = document.getElementById('confirmPassword').value;
+                        const btnUpdate = document.getElementById('btnUpdatePassword');
+
+                        if (newPass !== confirmPass) {
+                            tampilkanAlert("Kesalahan", "Password baru dan konfirmasi password tidak cocok.", "❌");
+                            return;
+                        }
+
+                        btnUpdate.innerText = "MEMPERBARUI...";
+                        btnUpdate.disabled = true;
+
+                        confirmPasswordReset(auth, actionCode, newPass).then(() => {
+                            document.getElementById('resetPasswordForm').style.display = 'none';
+                            ubahTampilan("✅", "Password Diperbarui", "Password Anda berhasil diperbarui. Silakan login menggunakan password baru Anda.");
+                        }).catch((error) => {
+                            btnUpdate.innerText = "PERBARUI PASSWORD";
+                            btnUpdate.disabled = false;
+                            tampilkanAlert("Gagal Memperbarui", "Terjadi kesalahan: " + error.message, "⚠️");
+                        });
+                    });
+
+                }).catch((error) => {
+                    // Kode tidak valid / sudah dipakai
+                    ubahTampilan("❌", "Tautan Kedaluwarsa", "Tautan reset password tidak valid atau telah kedaluwarsa. Silakan ajukan lupa password kembali.");
+                });
+            } 
+            
+            // --- JIKA MODE LAIN TIDAK DIKENAL ---
+            else {
+                ubahTampilan("❓", "Tindakan Tidak Dikenal", "Permintaan Anda tidak dapat diproses oleh sistem.");
+            }
+        }
+    </script>
+
+</body>
+</html>
