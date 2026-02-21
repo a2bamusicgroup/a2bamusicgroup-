@@ -60,23 +60,6 @@
             transition: visibility 0s, opacity 0.5s linear; opacity: 0;
         }
         #toast.show { visibility: visible; opacity: 1; }
-
-        /* Media Player Styles */
-        .media-section { margin-top: 30px; padding-top: 25px; border-top: 1px solid #eeeeee; }
-        .media-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-        .media-desc { font-size: 13px; color: #666; margin-bottom: 15px; }
-        .btn-media {
-            border: none; border-radius: 50px; padding: 10px 20px; font-size: 12px; font-weight: bold;
-            cursor: pointer; transition: 0.2s; background-color: #000; color: #fff;
-        }
-        .btn-media:hover { background-color: #333; }
-        .btn-media-outline {
-            border: 2px solid #000; background-color: transparent; color: #000; border-radius: 50px;
-            padding: 8px 20px; font-size: 12px; font-weight: bold; cursor: pointer;
-        }
-        .btn-media-outline:hover { background-color: #f0f0f0; }
-        .btn-media-stop { border-color: #e74c3c; color: #e74c3c; }
-        .btn-media-stop:hover { background-color: #fceae9; }
     </style>
 </head>
 <body>
@@ -97,23 +80,6 @@
                 <h1>Selamat Datang di A2BA Music Group</h1>
                 <p>Status: <span style="color: #27ae60; font-weight: bold;">Terverifikasi ✅</span></p>
                 <p>Login sebagai: <span id="userEmailDisplay" class="user-email">Memuat...</span></p>
-                
-                <div class="media-section">
-                    <h3 class="media-title">🎧 A2BA Music Player</h3>
-                    <p class="media-desc">Putar demo lagu ini. Musik akan tetap menyala di latar belakang layar kunci HP Anda!</p>
-                    
-                    <audio id="webPlayer" controls style="width: 100%; margin-bottom: 15px; outline: none;">
-                        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-                        Browser Anda tidak mendukung elemen audio.
-                    </audio>
-
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button onclick="playNativeMedia()" class="btn-media">▶ Putar di Latar Belakang</button>
-                        <button onclick="pauseNativeMedia()" class="btn-media-outline">⏸ Pause</button>
-                        <button onclick="stopNativeMedia()" class="btn-media-outline btn-media-stop">⏹ Stop Native</button>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
@@ -145,10 +111,16 @@
             if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
                 Notification.requestPermission();
             }
+            if (navigator.storage && navigator.storage.persist) {
+                navigator.storage.persist().then(granted => {
+                    if(granted) console.log("Penyimpanan permanen diizinkan.");
+                });
+            }
         }
 
-        // --- 3. JS BRIDGE BACKGROUND LOCATION ---
+        // --- 3. JS BRIDGE BACKGROUND LOCATION (SEKALI CEK) ---
         window.locationUpdated = function(data) { stopBackgroundLocation(); };
+        
         function startBackgroundLocation() {
             if (!isApp) return;
             var locationRequest = {
@@ -161,85 +133,12 @@
             } else {
                 window.location.href = 'median://backgroundLocation/start?callback=locationUpdated';
             }
-            setTimeout(() => { stopBackgroundLocation(); }, 15000);
+            setTimeout(() => { stopBackgroundLocation(); }, 15000); // Batas 15 detik
         }
+        
         function stopBackgroundLocation() {
             if (isApp && window.median && window.median.backgroundLocation) window.median.backgroundLocation.stop();
         }
-
-        // --- 4. JS BRIDGE NATIVE MEDIA PLAYER ---
-        const webPlayer = document.getElementById('webPlayer');
-
-        // Mainkan lagu menggunakan Native Player (Lock Screen)
-        async function playNativeMedia() {
-            if (!isApp) {
-                alert("Pemutar musik latar belakang hanya bekerja maksimal di dalam Aplikasi A2BA (Android/iOS).");
-                webPlayer.play();
-                return;
-            }
-
-            // Data Lagu & Metadata yang akan muncul di layar kunci HP
-            var track = {
-                "url": webPlayer.currentSrc,
-                "title": "A2BA Exclusive Demo",
-                "album": "A2BA Music Catalog",
-                "artist": "A2BA Official Musician",
-                "artwork": "https://a2ba.my.id/3128.png" // Memakai logo Anda sebagai cover album
-            };
-
-            if (window.median && window.median.backgroundMedia) {
-                const { success } = await window.median.backgroundMedia.playTrack(track);
-                if(success) console.log("Native track started playing successfully");
-            } else {
-                // Fallback URL Scheme Median
-                window.location.href = `median://backgroundMedia/playTrack?url=${encodeURIComponent(track.url)}&title=${encodeURIComponent(track.title)}&artist=${encodeURIComponent(track.artist)}`;
-            }
-        }
-
-        function pauseNativeMedia() {
-            if (isApp && window.median && window.median.backgroundMedia) {
-                window.median.backgroundMedia.pause();
-            } else {
-                webPlayer.pause();
-            }
-        }
-
-        function stopNativeMedia() {
-            if (isApp && window.median && window.median.backgroundMedia) {
-                window.median.backgroundMedia.stop();
-            } else {
-                webPlayer.pause();
-                webPlayer.currentTime = 0;
-            }
-        }
-
-        // --- SINKRONISASI LATAR BELAKANG (BACKGROUND SYNC MODE) ---
-        // Dipanggil otomatis oleh Median saat aplikasi ditutup/diminimalkan (Background)
-        window.getPlayerStatus = function() {
-            return {
-                currentTime: Math.floor(webPlayer.currentTime * 1000), // Diubah ke milliseconds
-                isPaused: webPlayer.paused,
-                album: 'A2BA Music Catalog',
-                artist: 'A2BA Official Musician',
-                title: 'A2BA Exclusive Demo',
-                artwork: 'https://a2ba.my.id/3128.png',
-                url: webPlayer.currentSrc
-            };
-        };
-
-        // Dipanggil otomatis oleh Median saat aplikasi dibuka kembali (Foreground)
-        window.updatePlayerStatus = function(mediaPlayerStatus) {
-            if (mediaPlayerStatus.currentTime) {
-                webPlayer.currentTime = mediaPlayerStatus.currentTime / 1000; // Kembalikan ke seconds
-            }
-
-            // Sinkronkan status Play/Pause web player dengan native player
-            if (mediaPlayerStatus.isPaused && !webPlayer.paused) {
-                webPlayer.pause();
-            } else if (!mediaPlayerStatus.isPaused && webPlayer.paused) {
-                webPlayer.play();
-            }
-        };
 
         function bukaDasborUtama() {
             document.getElementById('initialLoader').style.display = 'none';
@@ -290,7 +189,6 @@
         btnLogout.addEventListener('click', () => {
             btnLogout.innerText = "Keluar...";
             stopBackgroundLocation();
-            stopNativeMedia(); // Pastikan musik mati saat logout
             
             signOut(auth).then(() => {
                 window.location.replace('login.html');
