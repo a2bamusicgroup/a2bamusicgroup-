@@ -89,13 +89,42 @@
     <script>
         const isApp = navigator.userAgent.toLowerCase().includes('a2ba') || navigator.userAgent.toLowerCase().includes('median') || navigator.userAgent.toLowerCase().includes('gonative');
 
-        // --- 1. LOGIKA ANTI-BACK ---
+        // --- FUNGSI GLOBAL HAPTICS (GETARAN) ---
+        function triggerHaptic(styleName) {
+            if (!isApp) return; // Jangan jalankan kalau cuma di browser biasa
+            if (window.median && window.median.haptics) {
+                window.median.haptics.trigger({ style: styleName });
+            } else {
+                window.location.href = `median://haptics/trigger?style=${styleName}`;
+            }
+        }
+
+        // --- 1. LOGIKA SHAKE GESTURE (GUNCANG HP) ---
+        window.median_device_shake = function() {
+            triggerHaptic('impactHeavy'); // Getar kuat saat diguncang
+            
+            const toast = document.getElementById('toast');
+            const teksAsli = toast.innerText;
+            
+            toast.innerText = "Wow! Santai, perangkat diguncang! 🎸";
+            toast.className = "show";
+            
+            setTimeout(function() {
+                toast.className = toast.className.replace("show", "");
+                setTimeout(() => { toast.innerText = "Tekan sekali lagi untuk keluar aplikasi"; }, 500);
+            }, 2000);
+        };
+
+        // --- 2. LOGIKA ANTI-BACK DENGAN HAPTIC WARNING ---
         let doubleBackToExit = false;
         window.history.pushState(null, null, window.location.href);
 
         window.addEventListener('popstate', function(event) {
             if (!doubleBackToExit) {
                 doubleBackToExit = true;
+                
+                triggerHaptic('notificationWarning'); // Getar peringatan saat back pertama
+                
                 const toast = document.getElementById('toast');
                 toast.className = "show";
                 window.history.pushState(null, null, window.location.href);
@@ -106,7 +135,7 @@
             }
         });
 
-        // --- 2. LOGIKA PWA & IZIN STANDAR ---
+        // --- 3. LOGIKA PWA & IZIN STANDAR ---
         function mintaIzinPWA() {
             if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
                 Notification.requestPermission();
@@ -118,60 +147,51 @@
             }
         }
 
-        // --- 3. JS BRIDGE MEDIAN BACKGROUND LOCATION (SEKALI CEK) ---
-        
+        // --- 4. JS BRIDGE MEDIAN BACKGROUND LOCATION (SEKALI CEK) ---
         window.locationUpdated = function(data) {
-            console.log('Lokasi didapatkan (Sekali Cek):', data);
-            
-            // BEGITU DAPAT LOKASI 1 KALI, LANGSUNG MATIKAN AGAR TIDAK JALAN TERUS
             stopBackgroundLocation();
         };
 
         function startBackgroundLocation() {
             if (!isApp) return;
-
             var locationRequest = {
                 callback: 'locationUpdated',
                 iosBackgroundIndicator: true,
                 iosPauseAutomatically: true,
-                iosDesiredAccuracy: 'hundredMeters', // Akurasi diturunkan agar lebih cepat dapat sinyal
+                iosDesiredAccuracy: 'hundredMeters', 
                 iosActivityType: 'other',
                 androidPriority: 'balanced', 
                 androidNotificationTitle: 'A2BA Music Group',
                 androidNotificationText: 'Memeriksa keamanan lokasi...'
             };
 
-            // Panggil SDK Native Location
             if (window.median && window.median.backgroundLocation) {
                 window.median.backgroundLocation.start(locationRequest);
             } else {
                 window.location.href = 'median://backgroundLocation/start?callback=locationUpdated&androidNotificationTitle=A2BA%20Music%20Group&androidNotificationText=Memeriksa%20keamanan%20lokasi...';
             }
 
-            // SAFETY KILL-SWITCH: Matikan paksa setelah 15 detik walau GPS gagal dapat lokasi
-            setTimeout(() => {
-                stopBackgroundLocation();
-            }, 15000);
+            setTimeout(() => { stopBackgroundLocation(); }, 15000);
         }
 
         function stopBackgroundLocation() {
             if (!isApp) return;
-            
             if (window.median && window.median.backgroundLocation) {
                 window.median.backgroundLocation.stop();
             } else {
                 window.location.href = 'median://backgroundLocation/stop';
             }
-            console.log("Pengecekan lokasi dihentikan.");
         }
 
         function bukaDasborUtama() {
             document.getElementById('initialLoader').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
             
+            // Berikan efek getaran sukses saat masuk dasbor
+            triggerHaptic('notificationSuccess');
+            
             setTimeout(() => { 
                 mintaIzinPWA(); 
-                // Mulai pelacakan lokasi setelah dasbor sukses terbuka
                 startBackgroundLocation();
             }, 1500);
         }
@@ -213,9 +233,10 @@
 
         // FUNGSI LOGOUT DARI DASBOR
         btnLogout.addEventListener('click', () => {
-            btnLogout.innerText = "Keluar...";
+            // Efek getar medium saat tombol disentuh
+            if(typeof triggerHaptic === 'function') triggerHaptic('impactMedium');
             
-            // Pastikan pelacakan benar-benar mati saat logout
+            btnLogout.innerText = "Keluar...";
             stopBackgroundLocation();
             
             signOut(auth).then(() => {
