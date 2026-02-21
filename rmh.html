@@ -87,8 +87,6 @@
     <div id="toast">Tekan sekali lagi untuk keluar aplikasi</div>
 
     <script>
-        const isApp = navigator.userAgent.toLowerCase().includes('a2ba') || navigator.userAgent.toLowerCase().includes('median') || navigator.userAgent.toLowerCase().includes('gonative');
-
         // --- 1. LOGIKA ANTI-BACK ---
         let doubleBackToExit = false;
         window.history.pushState(null, null, window.location.href);
@@ -118,35 +116,12 @@
             }
         }
 
-        // --- 3. JS BRIDGE BACKGROUND LOCATION (SEKALI CEK) ---
-        window.locationUpdated = function(data) { stopBackgroundLocation(); };
-        
-        function startBackgroundLocation() {
-            if (!isApp) return;
-            var locationRequest = {
-                callback: 'locationUpdated', iosBackgroundIndicator: true, iosPauseAutomatically: true,
-                iosDesiredAccuracy: 'hundredMeters', iosActivityType: 'other', androidPriority: 'balanced', 
-                androidNotificationTitle: 'A2BA Music Group', androidNotificationText: 'Memeriksa keamanan lokasi...'
-            };
-            if (window.median && window.median.backgroundLocation) {
-                window.median.backgroundLocation.start(locationRequest);
-            } else {
-                window.location.href = 'median://backgroundLocation/start?callback=locationUpdated';
-            }
-            setTimeout(() => { stopBackgroundLocation(); }, 15000); // Batas 15 detik
-        }
-        
-        function stopBackgroundLocation() {
-            if (isApp && window.median && window.median.backgroundLocation) window.median.backgroundLocation.stop();
-        }
-
         function bukaDasborUtama() {
             document.getElementById('initialLoader').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
             
             setTimeout(() => { 
                 mintaIzinPWA(); 
-                startBackgroundLocation();
             }, 1500);
         }
     </script>
@@ -188,7 +163,6 @@
         // FUNGSI LOGOUT
         btnLogout.addEventListener('click', () => {
             btnLogout.innerText = "Keluar...";
-            stopBackgroundLocation();
             
             signOut(auth).then(() => {
                 window.location.replace('login.html');
