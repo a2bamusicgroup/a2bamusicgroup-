@@ -7,6 +7,9 @@
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 font-family=%22Arial, sans-serif%22 font-weight=%22bold%22 fill=%22black%22>A</text></svg>">
 
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
     <style>
@@ -21,201 +24,108 @@
             min-height: 100vh; 
         }
 
-        /* -------------------------------------------
-           ANIMASI LOADING AWAL (CEK SESI FIREBASE)
-           ------------------------------------------- */
+        /* Loading Awal */
         .initial-loader {
-            position: fixed;
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%;
-            background-color: #ffffff;
-            z-index: 9999; /* Paling atas, menutupi semua form */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
             transition: opacity 0.5s ease;
         }
-        
         .spinner {
-            width: 40px; 
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #000000;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
+            width: 40px; height: 40px; border: 4px solid #f3f3f3;
+            border-top: 4px solid #000000; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 15px;
         }
+        .initial-loader p { font-size: 14px; font-weight: 600; color: #555555; letter-spacing: 0.5px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .initial-loader p {
-            font-size: 14px;
-            font-weight: 600;
-            color: #555555;
-            letter-spacing: 0.5px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* -------------------------------------------
-           STYLE FORM LOGIN
-           ------------------------------------------- */
+        /* Container Utama */
         .login-wrapper {
-            width: 100%;
-            max-width: 400px; 
-            padding: 0 20px 40px 20px; 
-            margin-top: 0;
-            text-align: center;
+            width: 100%; max-width: 400px; padding: 0 20px 40px 20px; 
+            margin-top: 0; text-align: center;
+        }
+        .logo-container { margin-top: 40px; margin-bottom: 30px; }
+        .logo-container img { height: 55px; object-fit: contain; }
+
+        /* Tombol Umum */
+        .btn {
+            border: none; border-radius: 50px; padding: 14px 0; width: 100%; 
+            font-size: 14px; font-weight: bold; letter-spacing: 1px; transition: 0.3s;
+            display: flex; justify-content: center; align-items: center; gap: 10px;
         }
 
-        .logo-container {
-            margin-top: 30px; 
-            margin-bottom: 45px;
+        /* Tombol Google */
+        .btn-google { 
+            background-color: #ffffff; color: #555555; 
+            border: 2px solid #eeeeee; box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+            cursor: not-allowed; opacity: 0.6; margin-bottom: 10px;
         }
-        .logo-container img {
-            height: 55px; 
-            object-fit: contain;
+        .btn-google.active { color: #333333; border-color: #dddddd; opacity: 1; cursor: pointer; }
+        .btn-google.active:hover { background-color: #f9f9f9; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .google-icon { width: 18px; height: 18px; filter: grayscale(100%); transition: 0.3s; }
+        .btn-google.active .google-icon { filter: grayscale(0%); }
+
+        /* Garis Pemisah */
+        .divider {
+            display: flex; align-items: center; text-align: center; margin: 25px 0; 
+            color: #aaaaaa; font-size: 11px; font-weight: bold; letter-spacing: 1px;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1; border-bottom: 1px solid #eeeeee; margin: 0 15px;
         }
 
-        /* Baris Input & Label di Atas */
-        .input-group {
-            margin-bottom: 25px;
-            text-align: left; 
-            position: relative;
-        }
-        
+        /* Form Input */
+        .input-group { margin-bottom: 20px; text-align: left; position: relative; }
         .input-group label {
-            display: block;
-            font-size: 12px;
-            color: #555555;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: bold;
-            margin-bottom: 8px; 
+            display: block; font-size: 12px; color: #555555;
+            text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; margin-bottom: 8px; 
         }
-
         .input-group input {
-            width: 100%;
-            background-color: #f7f7f7; 
-            border: none;
-            border-bottom: 2px solid #dddddd; 
-            border-radius: 4px 4px 0 0;
-            font-size: 15px;
-            color: #000000;
-            font-family: inherit;
-            font-weight: 500;
-            padding: 15px; 
-            outline: none;
-            transition: 0.2s;
+            width: 100%; background-color: #f7f7f7; border: none;
+            border-bottom: 2px solid #dddddd; border-radius: 4px 4px 0 0;
+            font-size: 15px; color: #000000; font-family: inherit; font-weight: 500;
+            padding: 15px; outline: none; transition: 0.2s;
         }
-        
-        .input-group input[type="password"],
-        .input-group input.password-visible {
-            padding-right: 45px; 
-        }
-
-        .input-group input:focus {
-            border-bottom-color: #000000; 
-            background-color: #f0f0f0;
-        }
-
+        .input-group input[type="password"], .input-group input.password-visible { padding-right: 45px; }
+        .input-group input:focus { border-bottom-color: #000000; background-color: #f0f0f0; }
         .input-group input:-webkit-autofill {
             -webkit-box-shadow: 0 0 0 30px #f0f0f0 inset !important;
-            -webkit-text-fill-color: #000000 !important;
-            border-radius: 4px 4px 0 0;
+            -webkit-text-fill-color: #000000 !important; border-radius: 4px 4px 0 0;
         }
 
-        /* Ikon Toggle Password (Mata) */
+        /* Ikon Mata */
         .toggle-password {
-            position: absolute;
-            right: 15px;
-            bottom: 12px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #888888;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            transition: 0.2s;
+            position: absolute; right: 15px; bottom: 12px; background: none; border: none;
+            cursor: pointer; color: #888888; display: flex; align-items: center; justify-content: center;
+            padding: 0; transition: 0.2s;
         }
-        .toggle-password:hover {
-            color: #000000;
-        }
-        .toggle-password svg {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
-        }
+        .toggle-password:hover { color: #000000; }
+        .toggle-password svg { width: 20px; height: 20px; fill: currentColor; }
 
-        /* Area Cloudflare Turnstile */
+        /* Cloudflare Turnstile */
         .turnstile-container {
-            margin-bottom: 25px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 80px; 
+            margin-top: 10px; margin-bottom: 25px; display: flex; flex-direction: column;
+            align-items: center; min-height: 80px; 
         }
-        
-        .cf-status-text {
-            font-size: 12px;
-            font-weight: bold;
-            color: #e67e22; 
-            margin-top: 10px;
-        }
-        .cf-status-text.success {
-            color: #27ae60; 
-        }
+        .cf-status-text { font-size: 12px; font-weight: bold; color: #e67e22; margin-top: 10px; transition: 0.3s; }
+        .cf-status-text.success { color: #27ae60; }
 
-        /* Tombol Login */
-        .button-container {
-            margin-bottom: 25px;
-        }
-        .btn-login {
-            background-color: #cccccc; 
-            color: #ffffff;
-            border: none;
-            border-radius: 50px; 
-            padding: 14px 0;
-            width: 100%; 
-            font-size: 14px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            cursor: not-allowed; 
-            transition: 0.3s;
-        }
-        .btn-login.active {
-            background-color: #000000; 
-            cursor: pointer;
-        }
-        .btn-login.active:hover {
-            background-color: #333333;
-        }
+        /* Tombol Login Biasa */
+        .btn-login { background-color: #cccccc; color: #ffffff; cursor: not-allowed; margin-bottom: 15px; }
+        .btn-login.active { background-color: #000000; cursor: pointer; }
+        .btn-login.active:hover { background-color: #333333; }
 
-        .forgot-link {
-            color: #000000;
-            font-size: 13px;
-            font-weight: 500;
-            text-decoration: none;
-            transition: 0.2s;
-        }
-        .forgot-link:hover {
-            color: #666666;
-            text-decoration: underline;
-        }
+        /* Link Bawah */
+        .link-container { margin-top: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .link-text { color: #000000; font-size: 13px; font-weight: 500; text-decoration: none; transition: 0.2s; }
+        .link-text:hover { color: #666666; text-decoration: underline; }
 
-        /* MODAL POPUP */
+        /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; display: none; justify-content: center; align-items: center; padding: 20px; }
         .modal-box { background: #fff; padding: 30px; border-radius: 8px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .modal-icon { font-size: 2.5rem; margin-bottom: 10px; }
         .modal-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: #000; }
         .modal-desc { font-size: 0.9rem; color: #555; margin-bottom: 20px; line-height: 1.5; }
-        
         .btn-modal-action { display: block; width: 100%; padding: 12px; border-radius: 4px; font-weight: bold; margin-bottom: 10px; text-decoration: none; cursor: pointer; border: none; font-size: 14px; }
         .btn-black { background: #000; color: #fff; }
         .btn-black:hover { background: #333; }
@@ -233,6 +143,18 @@
         <div class="logo-container">
             <img src="3128.png" alt="A2BA Logo">
         </div>
+
+        <button type="button" id="btnGoogle" class="btn btn-google" disabled>
+            <svg class="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Google Login & Daftar
+        </button>
+
+        <div class="divider">ATAU GUNAKAN EMAIL</div>
 
         <form id="loginForm" autocomplete="off">
             
@@ -256,15 +178,23 @@
             </div>
 
             <div class="turnstile-container">
-                <div class="cf-turnstile" data-sitekey="0x4AAAAAACf2lK9vDKOHkazJ" data-callback="turnstileSukses"></div>
+                <div id="my-turnstile" class="cf-turnstile" 
+                     data-sitekey="0x4AAAAAACf2lK9vDKOHkazJ" 
+                     data-callback="turnstileSukses"
+                     data-expired-callback="turnstileReset"
+                     data-error-callback="turnstileReset">
+                </div>
                 <div id="cf-status" class="cf-status-text">⏳ Sedang memverifikasi keamanan...</div>
             </div>
 
             <div class="button-container">
-                <button type="submit" id="btnLogin" class="btn-login" disabled>LOGIN</button>
+                <button type="submit" id="btnLogin" class="btn btn-login" disabled>LOGIN</button>
             </div>
 
-            <a href="#" class="forgot-link" onclick="bukaWaLupaPassword(event)">Forgot your password?</a>
+            <div class="link-container">
+                <a href="reset.html" class="link-text">Lupa password Anda?</a>
+                <a href="#" class="link-text" onclick="bukaModalDaftar(event)">Belum punya akun? Daftar Manual</a>
+            </div>
 
         </form>
 
@@ -279,6 +209,18 @@
         </div>
     </div>
 
+    <div id="daftarModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-icon">🎸</div>
+            <div class="modal-title">Daftar Akun Artis</div>
+            <div class="modal-desc">
+                Saat ini, pendaftaran akun baru melalui email manual harus dilakukan via Admin untuk proses verifikasi data musisi.<br><br>
+                Gunakan tombol <strong>Google Login & Daftar</strong> di atas jika Anda ingin mendaftar otomatis, atau hubungi Admin kami.
+            </div>
+            <button class="btn-modal-action btn-black" onclick="tutupModal('daftarModal')">Mengerti</button>
+        </div>
+    </div>
+
     <script>
         function tampilkanAlert(judul, pesan, ikon = '⚠️') {
             document.getElementById('alertTitle').innerText = judul;
@@ -289,6 +231,11 @@
 
         function tutupModal(idModal) {
             document.getElementById(idModal).style.display = 'none';
+        }
+
+        function bukaModalDaftar(event) {
+            event.preventDefault();
+            document.getElementById('daftarModal').style.display = 'flex';
         }
 
         function togglePasswordVisibility() {
@@ -309,39 +256,37 @@
         function turnstileSukses() {
             var statusText = document.getElementById('cf-status');
             var btnLogin = document.getElementById('btnLogin');
+            var btnGoogle = document.getElementById('btnGoogle');
 
             statusText.innerText = "✅ Keamanan terverifikasi";
             statusText.classList.add('success');
             
             btnLogin.removeAttribute('disabled');
             btnLogin.classList.add('active');
+            btnGoogle.removeAttribute('disabled');
+            btnGoogle.classList.add('active');
         }
 
-        function bukaWaLupaPassword(event) {
-            event.preventDefault();
-            document.getElementById('alertTitle').innerText = "Lupa Password";
-            document.getElementById('alertDesc').innerText = "Untuk mereset password, silakan hubungi Admin melalui WhatsApp.";
-            document.getElementById('alertIcon').innerText = "🔐";
+        function turnstileReset() {
+            var statusText = document.getElementById('cf-status');
+            var btnLogin = document.getElementById('btnLogin');
+            var btnGoogle = document.getElementById('btnGoogle');
+
+            statusText.innerText = "⏳ Memverifikasi ulang keamanan...";
+            statusText.classList.remove('success');
             
-            var btnAlert = document.querySelector('#alertModal .btn-black');
-            btnAlert.innerText = "Lanjut ke WhatsApp";
-            btnAlert.onclick = function() {
-                window.open("https://wa.me/6285385184618?text=Halo%20Admin%20A2BA,%20saya%20lupa%20password%20akun%20saya.", "_blank");
-                tutupModal('alertModal');
-                
-                setTimeout(() => {
-                    btnAlert.innerText = "Mengerti";
-                    btnAlert.onclick = function() { tutupModal('alertModal'); };
-                }, 500);
-            };
-            
-            document.getElementById('alertModal').style.display = 'flex';
+            btnLogin.disabled = true;
+            btnLogin.classList.remove('active');
+            btnGoogle.disabled = true;
+            btnGoogle.classList.remove('active');
+
+            if (typeof turnstile !== 'undefined') { turnstile.reset(); }
         }
     </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCVSvYDeBdQb7dT1YrQhLPRIDb12DcyF-I",
@@ -357,26 +302,25 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         
-        // Element Loader
         const initialLoader = document.getElementById('initialLoader');
         const loaderText = document.getElementById('loaderText');
 
-        // CEK SESI SAAT HALAMAN DIMUAT (Loading Screen Aktif)
+        // CEK SESI AWAL
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Jika sudah login, ubah teks dan langsung alihkan
-                loaderText.innerText = "Mengalihkan ke Dasbor...";
-                window.location.href = 'rumah.html';
+                loaderText.innerText = "Mengalihkan...";
+                if (user.emailVerified) {
+                    window.location.href = 'rmh.html';
+                } else {
+                    window.location.href = 'verifikasi.html';
+                }
             } else {
-                // Jika BELUM login, hilangkan layar loading agar user bisa isi form
                 initialLoader.style.opacity = '0';
-                setTimeout(() => {
-                    initialLoader.style.display = 'none';
-                }, 500); // Menunggu transisi fade out selesai
+                setTimeout(() => { initialLoader.style.display = 'none'; }, 500);
             }
         });
 
-        // PROSES SUBMIT FORM LOGIN
+        // SUBMIT LOGIN EMAIL BIASA
         document.getElementById('loginForm').addEventListener('submit', function(event) {
             event.preventDefault(); 
 
@@ -395,27 +339,66 @@
 
             signInWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
-                    // Berhasil login, lemparkan ke rumah.html
-                    window.location.href = 'rumah.html';
+                    if (userCredential.user.emailVerified) {
+                        window.location.href = 'rmh.html';
+                    } else {
+                        window.location.href = 'verifikasi.html';
+                    }
                 })
                 .catch((error) => {
-                    const errorCode = error.code;
-                    
                     btnLogin.innerText = "LOGIN";
                     btnLogin.style.cursor = "pointer";
 
-                    // Deteksi Error Firebase
-                    if(errorCode === 'auth/invalid-credential' || errorCode === 'auth/wrong-password' || errorCode === 'auth/user-not-found') {
-                        tampilkanAlert("Gagal Login", "Email atau Password yang Anda masukkan salah. Silakan periksa kembali.", "❌");
-                    } else if (errorCode === 'auth/too-many-requests') {
-                        tampilkanAlert("Akun Dikunci", "Terlalu banyak percobaan gagal. Akun Anda dikunci sementara demi keamanan, silakan coba beberapa saat lagi.", "🔒");
-                    } else if (errorCode === 'auth/user-disabled') {
-                        tampilkanAlert("Akun Dinonaktifkan", "Akun Anda telah dinonaktifkan oleh Admin. Silakan hubungi Admin A2BA melalui WhatsApp untuk bantuan lebih lanjut.", "🚫");
+                    if(error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                        tampilkanAlert("Gagal Login", "Email atau Password salah.", "❌");
+                    } else if (error.code === 'auth/too-many-requests') {
+                        tampilkanAlert("Akun Dikunci", "Terlalu banyak percobaan gagal. Coba lagi nanti.", "🔒");
+                    } else if (error.code === 'auth/user-disabled') {
+                        tampilkanAlert("Akun Dinonaktifkan", "Akun Anda telah dinonaktifkan oleh Admin.", "🚫");
                     } else {
                         tampilkanAlert("Kesalahan Sistem", "Terjadi kesalahan: " + error.message, "⚠️");
                     }
                 });
         });
+
+        // LOGIN / DAFTAR DENGAN GOOGLE
+        const btnGoogle = document.getElementById('btnGoogle');
+        const googleProvider = new GoogleAuthProvider();
+
+        btnGoogle.addEventListener('click', () => {
+            if(btnGoogle.disabled) {
+                tampilkanAlert("Akses Ditolak", "Silakan selesaikan verifikasi keamanan Cloudflare di bagian bawah terlebih dahulu.", "🛡️");
+                return;
+            }
+
+            btnGoogle.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; margin-bottom: 0; border-width: 2px;"></div>';
+            
+            signInWithPopup(auth, googleProvider)
+                .then((result) => {
+                    window.location.href = 'rmh.html'; 
+                })
+                .catch((error) => {
+                    btnGoogle.innerHTML = `<svg class="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Google Login & Daftar`;
+                    
+                    if (error.code !== 'auth/popup-closed-by-user') {
+                         tampilkanAlert("Gagal Login Google", "Terjadi kesalahan: " + error.message, "⚠️");
+                    }
+                });
+        });
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker PWA terdaftar sukses dengan scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker PWA gagal terdaftar: ', err);
+                    });
+            });
+        }
     </script>
 
 </body>
