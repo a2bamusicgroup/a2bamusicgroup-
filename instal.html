@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instal Aplikasi | A2BA Music Group</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 font-family=%22Arial, sans-serif%22 font-weight=%22bold%22 fill=%22black%22>A</text></svg>">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffffff">
+
+    <style>
+        /* Reset Dasar */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f7f7f7; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            padding: 20px;
+        }
+
+        .install-wrapper {
+            width: 100%;
+            max-width: 800px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            padding: 40px;
+            text-align: center;
+        }
+
+        .logo-container img { height: 50px; margin-bottom: 20px; }
+        
+        .title { font-size: 24px; font-weight: bold; color: #000; margin-bottom: 10px; }
+        .subtitle { font-size: 15px; color: #555; margin-bottom: 40px; line-height: 1.6; max-width: 600px; margin-left: auto; margin-right: auto; }
+
+        /* Container Kartu Opsi */
+        .cards-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* Desain Kartu */
+        .card {
+            border: 2px solid #eeeeee;
+            border-radius: 10px;
+            padding: 30px 20px;
+            position: relative;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .card:hover { border-color: #dddddd; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        
+        .card-icon { font-size: 40px; margin-bottom: 15px; }
+        .card-title { font-size: 18px; font-weight: bold; color: #000; margin-bottom: 10px; }
+        .card-desc { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 25px; }
+        
+        /* Label Rekomendasi Android */
+        .badge-rek {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #27ae60;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 12px;
+            border-radius: 50px;
+            letter-spacing: 1px;
+            display: none; /* Disembunyikan, akan dimunculkan via JS jika pakai Android */
+        }
+
+        /* Tombol */
+        .btn {
+            border: none; border-radius: 50px; padding: 14px 0; width: 100%; 
+            font-size: 13px; font-weight: bold; letter-spacing: 1px; transition: 0.3s;
+            cursor: pointer; text-decoration: none; display: inline-block;
+        }
+        .btn-black { background-color: #000000; color: #ffffff; }
+        .btn-black:hover { background-color: #333333; }
+        
+        .btn-outline { background-color: transparent; border: 2px solid #000; color: #000; }
+        .btn-outline:hover { background-color: #f0f0f0; }
+
+        .btn-back {
+            background: none; border: none; color: #888; font-size: 14px; font-weight: bold;
+            cursor: pointer; text-decoration: none; margin-top: 10px; display: inline-block; transition: 0.2s;
+        }
+        .btn-back:hover { color: #000; text-decoration: underline; }
+
+        /* Responsif untuk HP */
+        @media (max-width: 768px) {
+            .cards-container { grid-template-columns: 1fr; }
+            .install-wrapper { padding: 30px 20px; }
+        }
+
+        /* MODAL IOS GUIDE */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; display: none; justify-content: center; align-items: center; padding: 20px; }
+        .modal-box { background: #fff; padding: 30px; border-radius: 8px; max-width: 400px; width: 100%; text-align: center; }
+        .modal-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; color: #000; }
+        .modal-desc { font-size: 0.95rem; color: #555; margin-bottom: 25px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <div class="install-wrapper">
+        <div class="logo-container">
+            <img src="3128.png" alt="A2BA Logo">
+        </div>
+        
+        <h1 class="title">Pilih Versi Aplikasi</h1>
+        <p class="subtitle">Kami menyediakan dua opsi aplikasi. Untuk pengalaman maksimal di perangkat Android, kami sangat menyarankan Anda menggunakan versi APK.</p>
+
+        <div class="cards-container">
+            
+            <div class="card" id="cardAndroid">
+                <div class="badge-rek" id="badgeAndroid">DIREKOMENDASIKAN</div>
+                <div>
+                    <div class="card-icon">🤖</div>
+                    <h3 class="card-title">Aplikasi Android (APK)</h3>
+                    <p class="card-desc">
+                        Aplikasi Native khusus Android. Menawarkan <b>fitur 100% lengkap</b>, performa lebih stabil, push notifikasi latar belakang, dan optimasi penyimpanan yang jauh lebih baik daripada versi Web.
+                    </p>
+                </div>
+                <a href="A2BA_App.apk" class="btn btn-black" download>DOWNLOAD APK</a>
+            </div>
+
+            <div class="card" id="cardPwa">
+                <div class="badge-rek" id="badgePwa" style="background-color: #3498db;">UNTUK IOS & PC</div>
+                <div>
+                    <div class="card-icon">🍏 / 💻</div>
+                    <h3 class="card-title">Versi Web App (PWA)</h3>
+                    <p class="card-desc">
+                        Opsi terbaik untuk pengguna <b>iOS (iPhone/iPad)</b> dan <b>Windows PC</b>. Berbasis Web App, langsung terinstal dari browser tanpa file APK. Fitur standar aplikasi dasar tersedia.
+                    </p>
+                </div>
+                <button id="btnInstallPwa" class="btn btn-outline">INSTAL PWA</button>
+            </div>
+
+        </div>
+
+        <a href="login.html" class="btn-back">Kembali ke Halaman Login</a>
+    </div>
+
+    <div id="iosModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">Cara Instal di iPhone/iPad</div>
+            <div class="modal-desc">
+                Sistem iOS Apple tidak mendukung instalasi otomatis. Untuk menginstal aplikasi ini:<br><br>
+                1. Ketuk ikon <b>Bagikan (Share)</b> <svg style="width:16px;vertical-align:middle" viewBox="0 0 512 512"><path d="M384 336a63.78 63.78 0 00-46.12 19.7l-148-83.27a63.85 63.85 0 000-32.86l148-83.27a63.8 63.8 0 10-15.73-27.87l-148 83.27a64 64 0 100 88.6l148 83.27A64 64 0 10384 336z" fill="#007aff"/></svg> di bagian bawah browser Safari Anda.<br><br>
+                2. Geser ke bawah dan pilih opsi <b>"Tambah ke Layar Utama"</b> (Add to Home Screen) <svg style="width:16px;vertical-align:middle" viewBox="0 0 512 512"><path d="M424 319v113H88V319H40v129c0 13.25 10.75 24 24 24h384c13.25 0 24-10.75 24-24V319zM256 40L108 188h96v171h104V188h96z" fill="#007aff"/></svg>.<br><br>
+                3. Ketuk <b>"Tambah"</b> di sudut kanan atas.
+            </div>
+            <button class="btn btn-black" onclick="document.getElementById('iosModal').style.display='none'">SAYA MENGERTI</button>
+        </div>
+    </div>
+
+    <script>
+        // 1. Deteksi Perangkat (OS) untuk memunculkan Badge Rekomendasi
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        const isAndroid = /android/i.test(userAgent);
+        const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+
+        if (isAndroid) {
+            // Highlight Kartu Android
+            document.getElementById('badgeAndroid').style.display = 'block';
+            document.getElementById('cardAndroid').style.borderColor = '#27ae60';
+        } else if (isIOS || !isAndroid) {
+            // Highlight Kartu PWA untuk iOS atau PC
+            document.getElementById('badgePwa').style.display = 'block';
+            document.getElementById('cardPwa').style.borderColor = '#3498db';
+        }
+
+        // 2. Logika Instal PWA Otomatis (Android/Windows)
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        document.getElementById('btnInstallPwa').addEventListener('click', async () => {
+            if (isIOS) {
+                // Tampilkan panduan manual jika pengguna memakai iOS Safari
+                document.getElementById('iosModal').style.display = 'flex';
+                return;
+            }
+
+            if (deferredPrompt) {
+                // Munculkan prompt instalasi PWA standar Chrome/Edge
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('PWA berhasil diinstal');
+                }
+                deferredPrompt = null;
+            } else {
+                // Fallback jika sudah terinstal atau prompt tidak tersedia
+                alert("Aplikasi PWA sepertinya sudah terinstal di perangkat Anda atau browser Anda tidak mendukungnya.");
+            }
+        });
+
+        // 3. Registrasi Service Worker (Wajib ada di halaman ini agar browser tahu PWA tersedia)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js');
+            });
+        }
+    </script>
+
+</body>
+</html>

@@ -400,31 +400,29 @@
     </script>
 
     <script>
-        let deferredPrompt;
+        // Cek apakah diakses dari WebView atau App yang User Agent-nya mengandung 'a2ba'
+        const isA2baApp = navigator.userAgent.toLowerCase().includes('a2ba');
 
-        // Tangkap sinyal saat browser mendeteksi PWA siap diinstal
+        // Tangkap sinyal PWA siap instal
         window.addEventListener('beforeinstallprompt', (e) => {
+            // Cegah pop-up default
             e.preventDefault();
-            deferredPrompt = e;
+            
+            // Jika diakses dari Webview A2BA, JANGAN tampilkan modal sama sekali
+            if (isA2baApp) {
+                return;
+            }
+
+            // Jika bukan dari Webview A2BA, tampilkan modal instal kustom kita
             document.getElementById('installModal').style.display = 'flex';
         });
 
-        // Logika ketika tombol "Instal Sekarang" di modal ditekan
-        document.getElementById('btnInstallConfirm').addEventListener('click', async () => {
-            if (deferredPrompt !== null) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('User menerima instalasi A2BA PWA');
-                } else {
-                    console.log('User menolak instalasi A2BA PWA');
-                }
-                deferredPrompt = null;
-            }
-            document.getElementById('installModal').style.display = 'none';
+        // Jika tombol Instal di modal diklik, langsung arahkan ke instal.html
+        document.getElementById('btnInstallConfirm').addEventListener('click', () => {
+            window.location.href = 'instal.html';
         });
 
-        // Registrasi Service Worker PWA
+        // Registrasi Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
