@@ -50,7 +50,7 @@
         .welcome-card p { color: #555555; font-size: 15px; margin-bottom: 5px; }
         .user-email { font-weight: bold; color: #000000; }
 
-        /* TOAST NOTIFIKASI (Untuk tulisan "Klik 2 kali untuk keluar") */
+        /* TOAST NOTIFIKASI */
         #toast {
             visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
             text-align: center; border-radius: 50px; padding: 12px 20px;
@@ -81,7 +81,7 @@
                 <p>Status: <span style="color: #27ae60; font-weight: bold;">Terverifikasi ✅</span></p>
                 <p>Login sebagai: <span id="userEmailDisplay" class="user-email">Memuat...</span></p>
                 <br>
-                <p style="font-size: 12px; color: #888;">* Jika aplikasi baru saja diinstal, sistem mungkin akan meminta izin akses Kamera, Notifikasi, dan Penyimpanan.</p>
+                <p style="font-size: 12px; color: #888;">* Sistem mungkin akan meminta izin akses Kamera, Notifikasi, dan Penyimpanan untuk fitur tertentu.</p>
             </div>
         </div>
     </div>
@@ -89,57 +89,48 @@
     <div id="toast">Tekan sekali lagi untuk keluar aplikasi</div>
 
     <script>
-        // --- 1. LOGIKA ANTI-BACK (KLIK 2 KALI UNTUK KELUAR) ---
-        let clickBackHitungan = 0;
+        // --- 1. LOGIKA ANTI-BACK YANG BENAR ---
+        let doubleBackToExit = false;
         
-        // Memaksa browser menambah riwayat kosong agar tombol back bisa kita cegat
-        window.history.pushState('dashboard', null, '');
+        // Memaksa browser menambah riwayat kosong
+        window.history.pushState(null, null, window.location.href);
 
-        window.addEventListener('popstate', () => {
-            clickBackHitungan++;
-            
-            if (clickBackHitungan === 1) {
+        window.addEventListener('popstate', function(event) {
+            if (!doubleBackToExit) {
+                // Klik Pertama
+                doubleBackToExit = true;
+                
                 // Tampilkan Toast
                 const toast = document.getElementById('toast');
                 toast.className = "show";
                 
-                // Kembalikan riwayat kosong agar tidak mundur beneran ke login
-                window.history.pushState('dashboard', null, '');
+                // Tambahkan lagi riwayat kosong untuk menahan user di halaman ini
+                window.history.pushState(null, null, window.location.href);
                 
-                // Hilangkan toast & reset hitungan setelah 2 detik
-                setTimeout(() => {
+                // Sembunyikan toast & reset hitungan setelah 2 detik
+                setTimeout(function() {
                     toast.className = toast.className.replace("show", "");
-                    clickBackHitungan = 0;
+                    doubleBackToExit = false;
                 }, 2000);
-                
-            } else if (clickBackHitungan === 2) {
-                // Klik dua kali tercapai -> KELUAR APLIKASI
-                // Menutup PWA Standalone
-                window.close();
-                // Fallback: Jika window.close() diblokir oleh HP, arahkan ke blank page agar tidak masuk ke loop login
-                window.location.href = "about:blank"; 
+            } else {
+                // Jika ditekan kedua kalinya, kita membiarkan browser mengeksekusi aksi 'Back' alaminya.
+                // Karena riwayat login di bawah sudah kita 'Replace', aplikasi akan langsung TERTUTUP (Keluar ke Beranda HP).
             }
         });
 
         // --- 2. LOGIKA MEMINTA IZIN (NOTIF, KAMERA, PENYIMPANAN) ---
         function mintaIzinPWA() {
-            // A. Izin Notifikasi
             if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
                 Notification.requestPermission();
             }
-
-            // B. Izin Penyimpanan Permanen (Storage)
             if (navigator.storage && navigator.storage.persist) {
                 navigator.storage.persist().then(granted => {
                     if(granted) console.log("Penyimpanan permanen diizinkan.");
                 });
             }
-
-            // C. Izin Kamera (Minta lalu langsung matikan agar lampu kamera tidak terus menyala)
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ video: true })
                     .then(stream => {
-                        // Izin didapat, langsung hentikan akses kamera karena cuma butuh 'izinkan' saja
                         stream.getTracks().forEach(track => track.stop());
                         console.log("Izin kamera didapatkan.");
                     })
@@ -173,19 +164,18 @@
         const userEmailDisplay = document.getElementById('userEmailDisplay');
         const btnLogout = document.getElementById('btnLogout');
 
-        // LOGIKA PENJAGA PINTU DASBOR
+        // LOGIKA PENJAGA PINTU DASBOR (Menggunakan REPLACE agar tidak nyangkut di back history)
         onAuthStateChanged(auth, (user) => {
             if (!user) {
-                window.location.href = 'login.html'; 
+                window.location.replace('login.html'); 
             } else if (!user.emailVerified) {
-                window.location.href = 'verifikasi.html';
+                window.location.replace('verifikasi.html');
             } else {
                 // AMAN! Tampilkan Dasbor.
                 userEmailDisplay.innerText = user.email;
                 initialLoader.style.display = 'none';
                 dashboardContent.style.display = 'block';
 
-                // Jalankan fungsi minta izin setelah dasbor berhasil dimuat
                 setTimeout(() => { mintaIzinPWA(); }, 1500);
             }
         });
@@ -194,7 +184,7 @@
         btnLogout.addEventListener('click', () => {
             btnLogout.innerText = "Keluar...";
             signOut(auth).then(() => {
-                // Berhasil logout, onAuthStateChanged akan menendang ke login.html
+                // Logout berhasil
             }).catch((error) => {
                 alert("Gagal logout: " + error.message);
                 btnLogout.innerText = "LOGOUT";
