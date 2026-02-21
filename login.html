@@ -120,15 +120,17 @@
         .link-text { color: #000000; font-size: 13px; font-weight: 500; text-decoration: none; transition: 0.2s; }
         .link-text:hover { color: #666666; text-decoration: underline; }
 
-        /* Modal */
+        /* Modal Umum */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; display: none; justify-content: center; align-items: center; padding: 20px; }
         .modal-box { background: #fff; padding: 30px; border-radius: 8px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .modal-icon { font-size: 2.5rem; margin-bottom: 10px; }
         .modal-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: #000; }
         .modal-desc { font-size: 0.9rem; color: #555; margin-bottom: 20px; line-height: 1.5; }
-        .btn-modal-action { display: block; width: 100%; padding: 12px; border-radius: 4px; font-weight: bold; margin-bottom: 10px; text-decoration: none; cursor: pointer; border: none; font-size: 14px; }
+        .btn-modal-action { display: block; width: 100%; padding: 12px; border-radius: 4px; font-weight: bold; margin-bottom: 10px; text-decoration: none; cursor: pointer; border: none; font-size: 14px; transition: 0.2s; }
         .btn-black { background: #000; color: #fff; }
         .btn-black:hover { background: #333; }
+        .btn-outline { background: #f0f0f0; color: #333; border: 1px solid #ddd; }
+        .btn-outline:hover { background: #e0e0e0; }
     </style>
 </head>
 <body>
@@ -157,7 +159,6 @@
         <div class="divider">ATAU GUNAKAN EMAIL</div>
 
         <form id="loginForm" autocomplete="off">
-            
             <input type="email" style="display:none" name="fakeemail">
             <input type="password" style="display:none" name="fakepassword">
 
@@ -169,7 +170,6 @@
             <div class="input-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" autocomplete="current-password" required>
-                
                 <button type="button" class="toggle-password" id="btnTogglePassword" onclick="togglePasswordVisibility()">
                     <svg id="eyeIcon" viewBox="0 0 24 24">
                         <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
@@ -218,6 +218,18 @@
                 Gunakan tombol <strong>Google Login & Daftar</strong> di atas jika Anda ingin mendaftar otomatis, atau hubungi Admin kami.
             </div>
             <button class="btn-modal-action btn-black" onclick="tutupModal('daftarModal')">Mengerti</button>
+        </div>
+    </div>
+
+    <div id="installModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-icon">📲</div>
+            <div class="modal-title">Instal Aplikasi A2BA</div>
+            <div class="modal-desc">
+                Tambahkan A2BA Music Group ke layar utama perangkat Anda untuk akses yang lebih cepat dan mudah.
+            </div>
+            <button id="btnInstallConfirm" class="btn-modal-action btn-black">Instal Sekarang</button>
+            <button class="btn-modal-action btn-outline" onclick="tutupModal('installModal')">Nanti Saja</button>
         </div>
     </div>
 
@@ -367,7 +379,7 @@
 
         btnGoogle.addEventListener('click', () => {
             if(btnGoogle.disabled) {
-                tampilkanAlert("Akses Ditolak", "Silakan selesaikan verifikasi keamanan Cloudflare di bagian bawah terlebih dahulu.", "🛡️");
+                tampilkanAlert("Akses Ditolak", "Silakan selesaikan verifikasi keamanan Cloudflare di bawah terlebih dahulu.", "🛡️");
                 return;
             }
 
@@ -388,6 +400,42 @@
     </script>
 
     <script>
+        let deferredPrompt;
+
+        // 1. Tangkap sinyal saat browser mendeteksi PWA siap diinstal
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Cegah browser memunculkan mini-infobar default (di Android)
+            e.preventDefault();
+            // Simpan sinyalnya untuk kita panggil nanti
+            deferredPrompt = e;
+            // Munculkan Modal Instalasi Custom kita
+            document.getElementById('installModal').style.display = 'flex';
+        });
+
+        // 2. Logika ketika tombol "Instal Sekarang" di modal kita ditekan
+        document.getElementById('btnInstallConfirm').addEventListener('click', async () => {
+            if (deferredPrompt !== null) {
+                // Munculkan pop-up instalasi asli dari browser
+                deferredPrompt.prompt();
+                
+                // Tunggu respons user (apakah klik Install atau Cancel di pop-up asli)
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('User menerima instalasi A2BA PWA');
+                } else {
+                    console.log('User menolak instalasi A2BA PWA');
+                }
+                
+                // Hapus sinyal karena hanya bisa dipakai satu kali
+                deferredPrompt = null;
+            }
+            
+            // Tutup modal custom kita
+            document.getElementById('installModal').style.display = 'none';
+        });
+
+        // Registrasi Service Worker PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')

@@ -6,6 +6,9 @@
     <title>Dasbor | A2BA Music Group</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 font-family=%22Arial, sans-serif%22 font-weight=%22bold%22 fill=%22black%22>A</text></svg>">
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -28,14 +31,10 @@
         .initial-loader p { font-size: 14px; font-weight: 600; color: #555555; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Navbar Sederhana */
+        /* Navbar */
         .navbar {
-            background-color: #000000;
-            color: #ffffff;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background-color: #000000; color: #ffffff; padding: 15px 30px;
+            display: flex; justify-content: space-between; align-items: center;
         }
         .navbar-logo { height: 30px; object-fit: contain; filter: invert(1); }
         .btn-logout {
@@ -44,16 +43,23 @@
         }
         .btn-logout:hover { background-color: #ffffff; color: #000000; }
 
-        /* Konten Utama */
-        .dashboard-container {
-            max-width: 1000px; margin: 50px auto; padding: 0 20px;
-        }
-        .welcome-card {
-            background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
+        /* Konten Dasbor */
+        .dashboard-container { max-width: 1000px; margin: 50px auto; padding: 0 20px; }
+        .welcome-card { background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .welcome-card h1 { font-size: 24px; margin-bottom: 10px; color: #000000; }
         .welcome-card p { color: #555555; font-size: 15px; margin-bottom: 5px; }
         .user-email { font-weight: bold; color: #000000; }
+
+        /* TOAST NOTIFIKASI (Untuk tulisan "Klik 2 kali untuk keluar") */
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
+            text-align: center; border-radius: 50px; padding: 12px 20px;
+            position: fixed; z-index: 99999; left: 50%; bottom: 30px;
+            transform: translateX(-50%); font-size: 14px; font-weight: 500;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: visibility 0s, opacity 0.5s linear; opacity: 0;
+        }
+        #toast.show { visibility: visible; opacity: 1; }
     </style>
 </head>
 <body>
@@ -64,7 +70,6 @@
     </div>
 
     <div id="dashboardContent" style="display: none;">
-        
         <nav class="navbar">
             <img src="3128.png" alt="A2BA Logo" class="navbar-logo">
             <button id="btnLogout" class="btn-logout">LOGOUT</button>
@@ -75,10 +80,75 @@
                 <h1>Selamat Datang di A2BA Music Group</h1>
                 <p>Status: <span style="color: #27ae60; font-weight: bold;">Terverifikasi ✅</span></p>
                 <p>Login sebagai: <span id="userEmailDisplay" class="user-email">Memuat...</span></p>
+                <br>
+                <p style="font-size: 12px; color: #888;">* Jika aplikasi baru saja diinstal, sistem mungkin akan meminta izin akses Kamera, Notifikasi, dan Penyimpanan.</p>
             </div>
         </div>
-
     </div>
+
+    <div id="toast">Tekan sekali lagi untuk keluar aplikasi</div>
+
+    <script>
+        // --- 1. LOGIKA ANTI-BACK (KLIK 2 KALI UNTUK KELUAR) ---
+        let clickBackHitungan = 0;
+        
+        // Memaksa browser menambah riwayat kosong agar tombol back bisa kita cegat
+        window.history.pushState('dashboard', null, '');
+
+        window.addEventListener('popstate', () => {
+            clickBackHitungan++;
+            
+            if (clickBackHitungan === 1) {
+                // Tampilkan Toast
+                const toast = document.getElementById('toast');
+                toast.className = "show";
+                
+                // Kembalikan riwayat kosong agar tidak mundur beneran ke login
+                window.history.pushState('dashboard', null, '');
+                
+                // Hilangkan toast & reset hitungan setelah 2 detik
+                setTimeout(() => {
+                    toast.className = toast.className.replace("show", "");
+                    clickBackHitungan = 0;
+                }, 2000);
+                
+            } else if (clickBackHitungan === 2) {
+                // Klik dua kali tercapai -> KELUAR APLIKASI
+                // Menutup PWA Standalone
+                window.close();
+                // Fallback: Jika window.close() diblokir oleh HP, arahkan ke blank page agar tidak masuk ke loop login
+                window.location.href = "about:blank"; 
+            }
+        });
+
+        // --- 2. LOGIKA MEMINTA IZIN (NOTIF, KAMERA, PENYIMPANAN) ---
+        function mintaIzinPWA() {
+            // A. Izin Notifikasi
+            if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                Notification.requestPermission();
+            }
+
+            // B. Izin Penyimpanan Permanen (Storage)
+            if (navigator.storage && navigator.storage.persist) {
+                navigator.storage.persist().then(granted => {
+                    if(granted) console.log("Penyimpanan permanen diizinkan.");
+                });
+            }
+
+            // C. Izin Kamera (Minta lalu langsung matikan agar lampu kamera tidak terus menyala)
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        // Izin didapat, langsung hentikan akses kamera karena cuma butuh 'izinkan' saja
+                        stream.getTracks().forEach(track => track.stop());
+                        console.log("Izin kamera didapatkan.");
+                    })
+                    .catch(err => {
+                        console.log("Akses kamera ditolak/dibatalkan user: ", err);
+                    });
+            }
+        }
+    </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -106,16 +176,17 @@
         // LOGIKA PENJAGA PINTU DASBOR
         onAuthStateChanged(auth, (user) => {
             if (!user) {
-                // 1. Jika belum login sama sekali -> Tendang ke Login
                 window.location.href = 'login.html'; 
             } else if (!user.emailVerified) {
-                // 2. Jika sudah login TAPI belum verifikasi email -> Tendang ke halaman Verifikasi
                 window.location.href = 'verifikasi.html';
             } else {
-                // 3. AMAN! Sudah login & terverifikasi. Tampilkan Dasbor.
+                // AMAN! Tampilkan Dasbor.
                 userEmailDisplay.innerText = user.email;
                 initialLoader.style.display = 'none';
                 dashboardContent.style.display = 'block';
+
+                // Jalankan fungsi minta izin setelah dasbor berhasil dimuat
+                setTimeout(() => { mintaIzinPWA(); }, 1500);
             }
         });
 
@@ -123,12 +194,20 @@
         btnLogout.addEventListener('click', () => {
             btnLogout.innerText = "Keluar...";
             signOut(auth).then(() => {
-                // Akan otomatis tertangkap oleh onAuthStateChanged dan ditendang ke login.html
+                // Berhasil logout, onAuthStateChanged akan menendang ke login.html
             }).catch((error) => {
                 alert("Gagal logout: " + error.message);
                 btnLogout.innerText = "LOGOUT";
             });
         });
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js');
+            });
+        }
     </script>
 
 </body>
