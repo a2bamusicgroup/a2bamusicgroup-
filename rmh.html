@@ -80,8 +80,6 @@
                 <h1>Selamat Datang di A2BA Music Group</h1>
                 <p>Status: <span style="color: #27ae60; font-weight: bold;">Terverifikasi ✅</span></p>
                 <p>Login sebagai: <span id="userEmailDisplay" class="user-email">Memuat...</span></p>
-                <br>
-                <p style="font-size: 12px; color: #888;">* Aplikasi sedang mengoptimalkan data Anda di latar belakang.</p>
             </div>
         </div>
     </div>
@@ -120,13 +118,13 @@
             }
         }
 
-        // --- 3. JS BRIDGE MEDIAN BACKGROUND LOCATION ---
+        // --- 3. JS BRIDGE MEDIAN BACKGROUND LOCATION (SEKALI CEK) ---
         
-        // Callback untuk menerima titik koordinat (latitude & longitude)
         window.locationUpdated = function(data) {
-            console.log('Update Lokasi Musisi (Latar Belakang):', data);
-            // Nantinya Anda bisa menambahkan fungsi upload ke Firebase Database di sini
-            // Contoh: uploadKeDatabase(data.locations[0].latitude, data.locations[0].longitude);
+            console.log('Lokasi didapatkan (Sekali Cek):', data);
+            
+            // BEGITU DAPAT LOKASI 1 KALI, LANGSUNG MATIKAN AGAR TIDAK JALAN TERUS
+            stopBackgroundLocation();
         };
 
         function startBackgroundLocation() {
@@ -136,20 +134,24 @@
                 callback: 'locationUpdated',
                 iosBackgroundIndicator: true,
                 iosPauseAutomatically: true,
-                iosDesiredAccuracy: 'best',
+                iosDesiredAccuracy: 'hundredMeters', // Akurasi diturunkan agar lebih cepat dapat sinyal
                 iosActivityType: 'other',
-                androidPriority: 'balanced', // Seimbang untuk performa & daya baterai
+                androidPriority: 'balanced', 
                 androidNotificationTitle: 'A2BA Music Group',
-                androidNotificationText: 'Mempertahankan sesi aktif di latar belakang.'
+                androidNotificationText: 'Memeriksa keamanan lokasi...'
             };
 
             // Panggil SDK Native Location
             if (window.median && window.median.backgroundLocation) {
                 window.median.backgroundLocation.start(locationRequest);
             } else {
-                // Fallback URL scheme Median
-                window.location.href = 'median://backgroundLocation/start?callback=locationUpdated&androidNotificationTitle=A2BA%20Music%20Group&androidNotificationText=Mempertahankan%20sesi%20aktif%20di%20latar%20belakang';
+                window.location.href = 'median://backgroundLocation/start?callback=locationUpdated&androidNotificationTitle=A2BA%20Music%20Group&androidNotificationText=Memeriksa%20keamanan%20lokasi...';
             }
+
+            // SAFETY KILL-SWITCH: Matikan paksa setelah 15 detik walau GPS gagal dapat lokasi
+            setTimeout(() => {
+                stopBackgroundLocation();
+            }, 15000);
         }
 
         function stopBackgroundLocation() {
@@ -160,6 +162,7 @@
             } else {
                 window.location.href = 'median://backgroundLocation/stop';
             }
+            console.log("Pengecekan lokasi dihentikan.");
         }
 
         function bukaDasborUtama() {
@@ -212,7 +215,7 @@
         btnLogout.addEventListener('click', () => {
             btnLogout.innerText = "Keluar...";
             
-            // Hentikan pelacakan lokasi latar belakang saat user logout
+            // Pastikan pelacakan benar-benar mati saat logout
             stopBackgroundLocation();
             
             signOut(auth).then(() => {
