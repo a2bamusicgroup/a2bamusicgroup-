@@ -31,6 +31,21 @@
         .initial-loader p { font-size: 14px; font-weight: 600; color: #555555; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* Layar Kunci Biometrik */
+        .biometric-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff; z-index: 9998; 
+            display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;
+        }
+        .bio-icon { font-size: 60px; margin-bottom: 20px; }
+        .bio-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        .bio-desc { font-size: 14px; color: #666; margin-bottom: 30px; max-width: 300px; }
+        .btn-bio {
+            background-color: #000; color: #fff; border: none; padding: 12px 30px; border-radius: 50px;
+            font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        .btn-bio:hover { background-color: #333; }
+
         /* Navbar */
         .navbar {
             background-color: #000000; color: #ffffff; padding: 15px 30px;
@@ -69,6 +84,14 @@
         <p id="loaderText">Memuat Dasbor...</p>
     </div>
 
+    <div id="biometricScreen" class="biometric-screen">
+        <div class="bio-icon">🔐</div>
+        <div class="bio-title">Keamanan Biometrik</div>
+        <div class="bio-desc">Silakan verifikasi Sidik Jari atau Face ID Anda untuk mengakses Dasbor A2BA.</div>
+        <button class="btn-bio" onclick="triggerBiometric()">VERIFIKASI SEKARANG</button>
+        <button onclick="keluarDariBiometrik()" style="background:none; border:none; color:#e74c3c; font-weight:bold; margin-top:20px; cursor:pointer;">Batal & Logout</button>
+    </div>
+
     <div id="dashboardContent" style="display: none;">
         <nav class="navbar">
             <img src="3128.png" alt="A2BA Logo" class="navbar-logo">
@@ -89,36 +112,27 @@
     <div id="toast">Tekan sekali lagi untuk keluar aplikasi</div>
 
     <script>
+        // Cek Deteksi Aplikasi Bawaan A2BA / Median
+        const isApp = navigator.userAgent.toLowerCase().includes('a2ba') || navigator.userAgent.toLowerCase().includes('median') || navigator.userAgent.toLowerCase().includes('gonative');
+
         // --- 1. LOGIKA ANTI-BACK YANG BENAR ---
         let doubleBackToExit = false;
-        
-        // Memaksa browser menambah riwayat kosong
         window.history.pushState(null, null, window.location.href);
 
         window.addEventListener('popstate', function(event) {
             if (!doubleBackToExit) {
-                // Klik Pertama
                 doubleBackToExit = true;
-                
-                // Tampilkan Toast
                 const toast = document.getElementById('toast');
                 toast.className = "show";
-                
-                // Tambahkan lagi riwayat kosong untuk menahan user di halaman ini
                 window.history.pushState(null, null, window.location.href);
-                
-                // Sembunyikan toast & reset hitungan setelah 2 detik
                 setTimeout(function() {
                     toast.className = toast.className.replace("show", "");
                     doubleBackToExit = false;
                 }, 2000);
-            } else {
-                // Jika ditekan kedua kalinya, kita membiarkan browser mengeksekusi aksi 'Back' alaminya.
-                // Karena riwayat login di bawah sudah kita 'Replace', aplikasi akan langsung TERTUTUP (Keluar ke Beranda HP).
             }
         });
 
-        // --- 2. LOGIKA MEMINTA IZIN (NOTIF, KAMERA, PENYIMPANAN) ---
+        // --- 2. LOGIKA MEMINTA IZIN PWA ---
         function mintaIzinPWA() {
             if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
                 Notification.requestPermission();
@@ -128,16 +142,35 @@
                     if(granted) console.log("Penyimpanan permanen diizinkan.");
                 });
             }
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(stream => {
-                        stream.getTracks().forEach(track => track.stop());
-                        console.log("Izin kamera didapatkan.");
-                    })
-                    .catch(err => {
-                        console.log("Akses kamera ditolak/dibatalkan user: ", err);
-                    });
+        }
+
+        // --- 3. JS BRIDGE BIOMETRIK (MEDIAN NATIVE) ---
+        // Fungsi ini dipanggil secara otomatis oleh Native App setelah proses scan
+        window.medianBiometricCallback = function(response) {
+            if (response && response.success) {
+                // Sidik jari / Wajah Cocok -> Buka Dasbor
+                bukaDasborUtama();
+            } else {
+                // Gagal atau Dibatalkan
+                alert("Verifikasi biometrik gagal atau dibatalkan. Pastikan perangkat Anda mendukung Face ID / Touch ID.");
             }
+        };
+
+        // Fungsi untuk memanggil UI Sidik Jari HP
+        function triggerBiometric() {
+            if(window.median && window.median.biometric && window.median.biometric.authenticate) {
+                window.median.biometric.authenticate({ callback: 'medianBiometricCallback', reason: 'Akses Dasbor A2BA' });
+            } else {
+                window.location.href = 'median://biometric/authenticate?callback=medianBiometricCallback&reason=Akses%20Dasbor%20A2BA';
+            }
+        }
+
+        // Fungsi Menampilkan Dasbor Jika Sukses
+        function bukaDasborUtama() {
+            document.getElementById('initialLoader').style.display = 'none';
+            document.getElementById('biometricScreen').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+            setTimeout(() => { mintaIzinPWA(); }, 1500);
         }
     </script>
 
@@ -160,31 +193,44 @@
         const auth = getAuth(app);
         
         const initialLoader = document.getElementById('initialLoader');
-        const dashboardContent = document.getElementById('dashboardContent');
         const userEmailDisplay = document.getElementById('userEmailDisplay');
         const btnLogout = document.getElementById('btnLogout');
 
-        // LOGIKA PENJAGA PINTU DASBOR (Menggunakan REPLACE agar tidak nyangkut di back history)
+        // Buka untuk Global agar tombol 'Batal & Logout' bisa memanggil Firebase Logout
+        window.keluarDariBiometrik = function() {
+            signOut(auth).then(() => {
+                window.location.replace('login.html');
+            });
+        };
+
+        // LOGIKA PENJAGA PINTU DASBOR
         onAuthStateChanged(auth, (user) => {
             if (!user) {
                 window.location.replace('login.html'); 
             } else if (!user.emailVerified) {
                 window.location.replace('verifikasi.html');
             } else {
-                // AMAN! Tampilkan Dasbor.
+                // Email dan Sesi Valid
                 userEmailDisplay.innerText = user.email;
-                initialLoader.style.display = 'none';
-                dashboardContent.style.display = 'block';
 
-                setTimeout(() => { mintaIzinPWA(); }, 1500);
+                // CEK: APAKAH INI DI APLIKASI NATIVE (MEMBUTUHKAN BIOMETRIK)?
+                if (isApp) {
+                    initialLoader.style.display = 'none';
+                    document.getElementById('biometricScreen').style.display = 'flex';
+                    // Langsung tembak prompt biometrik
+                    triggerBiometric();
+                } else {
+                    // JIKA DI WEB BROWSER BIASA, LANGSUNG BUKA DASBOR
+                    bukaDasborUtama();
+                }
             }
         });
 
-        // FUNGSI LOGOUT
+        // FUNGSI LOGOUT DARI DASBOR
         btnLogout.addEventListener('click', () => {
             btnLogout.innerText = "Keluar...";
             signOut(auth).then(() => {
-                // Logout berhasil
+                window.location.replace('login.html');
             }).catch((error) => {
                 alert("Gagal logout: " + error.message);
                 btnLogout.innerText = "LOGOUT";
