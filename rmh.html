@@ -112,10 +112,9 @@
     <div id="toast">Tekan sekali lagi untuk keluar aplikasi</div>
 
     <script>
-        // Cek Deteksi Aplikasi Bawaan A2BA / Median
         const isApp = navigator.userAgent.toLowerCase().includes('a2ba') || navigator.userAgent.toLowerCase().includes('median') || navigator.userAgent.toLowerCase().includes('gonative');
 
-        // --- 1. LOGIKA ANTI-BACK YANG BENAR ---
+        // --- 1. LOGIKA ANTI-BACK ---
         let doubleBackToExit = false;
         window.history.pushState(null, null, window.location.href);
 
@@ -144,19 +143,17 @@
             }
         }
 
-        // --- 3. JS BRIDGE BIOMETRIK (MEDIAN NATIVE) ---
-        // Fungsi ini dipanggil secara otomatis oleh Native App setelah proses scan
+        // --- 3. JS BRIDGE BIOMETRIK ---
         window.medianBiometricCallback = function(response) {
             if (response && response.success) {
-                // Sidik jari / Wajah Cocok -> Buka Dasbor
+                // Sidik jari berhasil -> SIMPAN KE SESSION STORAGE agar tidak minta lagi selama app terbuka
+                sessionStorage.setItem('biometricPassed', 'true');
                 bukaDasborUtama();
             } else {
-                // Gagal atau Dibatalkan
                 alert("Verifikasi biometrik gagal atau dibatalkan. Pastikan perangkat Anda mendukung Face ID / Touch ID.");
             }
         };
 
-        // Fungsi untuk memanggil UI Sidik Jari HP
         function triggerBiometric() {
             if(window.median && window.median.biometric && window.median.biometric.authenticate) {
                 window.median.biometric.authenticate({ callback: 'medianBiometricCallback', reason: 'Akses Dasbor A2BA' });
@@ -165,7 +162,6 @@
             }
         }
 
-        // Fungsi Menampilkan Dasbor Jika Sukses
         function bukaDasborUtama() {
             document.getElementById('initialLoader').style.display = 'none';
             document.getElementById('biometricScreen').style.display = 'none';
@@ -196,8 +192,8 @@
         const userEmailDisplay = document.getElementById('userEmailDisplay');
         const btnLogout = document.getElementById('btnLogout');
 
-        // Buka untuk Global agar tombol 'Batal & Logout' bisa memanggil Firebase Logout
         window.keluarDariBiometrik = function() {
+            sessionStorage.removeItem('biometricPassed'); // Bersihkan sesi biometrik
             signOut(auth).then(() => {
                 window.location.replace('login.html');
             });
@@ -210,17 +206,22 @@
             } else if (!user.emailVerified) {
                 window.location.replace('verifikasi.html');
             } else {
-                // Email dan Sesi Valid
                 userEmailDisplay.innerText = user.email;
 
-                // CEK: APAKAH INI DI APLIKASI NATIVE (MEMBUTUHKAN BIOMETRIK)?
+                // Cek apakah pakai Aplikasi Median
                 if (isApp) {
-                    initialLoader.style.display = 'none';
-                    document.getElementById('biometricScreen').style.display = 'flex';
-                    // Langsung tembak prompt biometrik
-                    triggerBiometric();
+                    // Cek apakah di sesi ini user sudah pernah scan biometrik
+                    if (sessionStorage.getItem('biometricPassed') === 'true') {
+                        // Jika sudah lolos, langsung masuk tanpa scan lagi
+                        bukaDasborUtama();
+                    } else {
+                        // Jika belum lolos / baru buka app, paksa scan
+                        initialLoader.style.display = 'none';
+                        document.getElementById('biometricScreen').style.display = 'flex';
+                        triggerBiometric();
+                    }
                 } else {
-                    // JIKA DI WEB BROWSER BIASA, LANGSUNG BUKA DASBOR
+                    // Web browser biasa tidak perlu biometrik
                     bukaDasborUtama();
                 }
             }
@@ -229,6 +230,7 @@
         // FUNGSI LOGOUT DARI DASBOR
         btnLogout.addEventListener('click', () => {
             btnLogout.innerText = "Keluar...";
+            sessionStorage.removeItem('biometricPassed'); // Wajib hapus sesi biometrik saat logout
             signOut(auth).then(() => {
                 window.location.replace('login.html');
             }).catch((error) => {
