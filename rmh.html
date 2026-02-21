@@ -31,21 +31,6 @@
         .initial-loader p { font-size: 14px; font-weight: 600; color: #555555; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Layar Kunci Biometrik */
-        .biometric-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #ffffff; z-index: 9998; 
-            display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;
-        }
-        .bio-icon { font-size: 60px; margin-bottom: 20px; }
-        .bio-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
-        .bio-desc { font-size: 14px; color: #666; margin-bottom: 30px; max-width: 300px; }
-        .btn-bio {
-            background-color: #000; color: #fff; border: none; padding: 12px 30px; border-radius: 50px;
-            font-weight: bold; cursor: pointer; transition: 0.3s;
-        }
-        .btn-bio:hover { background-color: #333; }
-
         /* Navbar */
         .navbar {
             background-color: #000000; color: #ffffff; padding: 15px 30px;
@@ -84,14 +69,6 @@
         <p id="loaderText">Memuat Dasbor...</p>
     </div>
 
-    <div id="biometricScreen" class="biometric-screen">
-        <div class="bio-icon">🔐</div>
-        <div class="bio-title">Keamanan Biometrik</div>
-        <div class="bio-desc">Silakan verifikasi Sidik Jari atau Face ID Anda untuk mengakses Dasbor A2BA.</div>
-        <button class="btn-bio" onclick="triggerBiometric()">VERIFIKASI SEKARANG</button>
-        <button onclick="keluarDariBiometrik()" style="background:none; border:none; color:#e74c3c; font-weight:bold; margin-top:20px; cursor:pointer;">Batal & Logout</button>
-    </div>
-
     <div id="dashboardContent" style="display: none;">
         <nav class="navbar">
             <img src="3128.png" alt="A2BA Logo" class="navbar-logo">
@@ -104,7 +81,7 @@
                 <p>Status: <span style="color: #27ae60; font-weight: bold;">Terverifikasi ✅</span></p>
                 <p>Login sebagai: <span id="userEmailDisplay" class="user-email">Memuat...</span></p>
                 <br>
-                <p style="font-size: 12px; color: #888;">* Sistem mungkin akan meminta izin akses Kamera, Notifikasi, dan Penyimpanan untuk fitur tertentu.</p>
+                <p style="font-size: 12px; color: #888;">* Aplikasi sedang mengoptimalkan data Anda di latar belakang.</p>
             </div>
         </div>
     </div>
@@ -131,7 +108,7 @@
             }
         });
 
-        // --- 2. LOGIKA MEMINTA IZIN PWA ---
+        // --- 2. LOGIKA PWA & IZIN STANDAR ---
         function mintaIzinPWA() {
             if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
                 Notification.requestPermission();
@@ -143,30 +120,57 @@
             }
         }
 
-        // --- 3. JS BRIDGE BIOMETRIK ---
-        window.medianBiometricCallback = function(response) {
-            if (response && response.success) {
-                // Sidik jari berhasil -> SIMPAN KE SESSION STORAGE agar tidak minta lagi selama app terbuka
-                sessionStorage.setItem('biometricPassed', 'true');
-                bukaDasborUtama();
-            } else {
-                alert("Verifikasi biometrik gagal atau dibatalkan. Pastikan perangkat Anda mendukung Face ID / Touch ID.");
-            }
+        // --- 3. JS BRIDGE MEDIAN BACKGROUND LOCATION ---
+        
+        // Callback untuk menerima titik koordinat (latitude & longitude)
+        window.locationUpdated = function(data) {
+            console.log('Update Lokasi Musisi (Latar Belakang):', data);
+            // Nantinya Anda bisa menambahkan fungsi upload ke Firebase Database di sini
+            // Contoh: uploadKeDatabase(data.locations[0].latitude, data.locations[0].longitude);
         };
 
-        function triggerBiometric() {
-            if(window.median && window.median.biometric && window.median.biometric.authenticate) {
-                window.median.biometric.authenticate({ callback: 'medianBiometricCallback', reason: 'Akses Dasbor A2BA' });
+        function startBackgroundLocation() {
+            if (!isApp) return;
+
+            var locationRequest = {
+                callback: 'locationUpdated',
+                iosBackgroundIndicator: true,
+                iosPauseAutomatically: true,
+                iosDesiredAccuracy: 'best',
+                iosActivityType: 'other',
+                androidPriority: 'balanced', // Seimbang untuk performa & daya baterai
+                androidNotificationTitle: 'A2BA Music Group',
+                androidNotificationText: 'Mempertahankan sesi aktif di latar belakang.'
+            };
+
+            // Panggil SDK Native Location
+            if (window.median && window.median.backgroundLocation) {
+                window.median.backgroundLocation.start(locationRequest);
             } else {
-                window.location.href = 'median://biometric/authenticate?callback=medianBiometricCallback&reason=Akses%20Dasbor%20A2BA';
+                // Fallback URL scheme Median
+                window.location.href = 'median://backgroundLocation/start?callback=locationUpdated&androidNotificationTitle=A2BA%20Music%20Group&androidNotificationText=Mempertahankan%20sesi%20aktif%20di%20latar%20belakang';
+            }
+        }
+
+        function stopBackgroundLocation() {
+            if (!isApp) return;
+            
+            if (window.median && window.median.backgroundLocation) {
+                window.median.backgroundLocation.stop();
+            } else {
+                window.location.href = 'median://backgroundLocation/stop';
             }
         }
 
         function bukaDasborUtama() {
             document.getElementById('initialLoader').style.display = 'none';
-            document.getElementById('biometricScreen').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
-            setTimeout(() => { mintaIzinPWA(); }, 1500);
+            
+            setTimeout(() => { 
+                mintaIzinPWA(); 
+                // Mulai pelacakan lokasi setelah dasbor sukses terbuka
+                startBackgroundLocation();
+            }, 1500);
         }
     </script>
 
@@ -192,13 +196,6 @@
         const userEmailDisplay = document.getElementById('userEmailDisplay');
         const btnLogout = document.getElementById('btnLogout');
 
-        window.keluarDariBiometrik = function() {
-            sessionStorage.removeItem('biometricPassed'); // Bersihkan sesi biometrik
-            signOut(auth).then(() => {
-                window.location.replace('login.html');
-            });
-        };
-
         // LOGIKA PENJAGA PINTU DASBOR
         onAuthStateChanged(auth, (user) => {
             if (!user) {
@@ -207,30 +204,17 @@
                 window.location.replace('verifikasi.html');
             } else {
                 userEmailDisplay.innerText = user.email;
-
-                // Cek apakah pakai Aplikasi Median
-                if (isApp) {
-                    // Cek apakah di sesi ini user sudah pernah scan biometrik
-                    if (sessionStorage.getItem('biometricPassed') === 'true') {
-                        // Jika sudah lolos, langsung masuk tanpa scan lagi
-                        bukaDasborUtama();
-                    } else {
-                        // Jika belum lolos / baru buka app, paksa scan
-                        initialLoader.style.display = 'none';
-                        document.getElementById('biometricScreen').style.display = 'flex';
-                        triggerBiometric();
-                    }
-                } else {
-                    // Web browser biasa tidak perlu biometrik
-                    bukaDasborUtama();
-                }
+                bukaDasborUtama();
             }
         });
 
         // FUNGSI LOGOUT DARI DASBOR
         btnLogout.addEventListener('click', () => {
             btnLogout.innerText = "Keluar...";
-            sessionStorage.removeItem('biometricPassed'); // Wajib hapus sesi biometrik saat logout
+            
+            // Hentikan pelacakan lokasi latar belakang saat user logout
+            stopBackgroundLocation();
+            
             signOut(auth).then(() => {
                 window.location.replace('login.html');
             }).catch((error) => {
